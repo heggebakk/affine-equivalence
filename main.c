@@ -1,22 +1,5 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <memory.h>
-
-size_t k = 4;
-
-/**
- * A truth table which holds the information of the dimension of the truth table and all its elements.
- */
-typedef struct TruthTable {
-    size_t dimension;
-    size_t *elements;
-} TruthTable;
-
-typedef struct Partition {
-    size_t numBuckets;
-    size_t *multiplicities;
-    size_t *bucketSizes;
-    size_t **buckets;
+#include "structures.h"
+#include "affine.h"
 
 } Partition;
 
@@ -46,11 +29,13 @@ void calculateMultiplicities(size_t i, size_t *multiplicities, TruthTable *truth
 Partition *initPartition(size_t dimension);
 
 int main(int argc, char *argv[]) {
-    char *filename = "resources/q_6_1.tt";
+    char *filename = "resources/q_6_3.tt";
     TruthTable *functionF = parseFile(filename);
     Partition *partition = partitionTt(functionF);
+    BucketsMap *bucketsMap = mapBuckets(partition, partition, functionF->dimension);
 
     destroyTruthTable(functionF);
+    destroyPartition(partition);
     return 0;
 }
 
