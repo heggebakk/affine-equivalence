@@ -91,14 +91,3 @@ TruthTable *parseFile(char *file) {
 
 }
 
-void destroyTruthTable(TruthTable *truthTable) {
-    free(truthTable->elements);
-    free(truthTable);
-}
-
-TruthTable *initTruthTable(size_t dimension) {
-    TruthTable *newTt = malloc(sizeof(TruthTable));
-    newTt->dimension = dimension;
-    newTt->elements = malloc(sizeof(size_t) * 1L << dimension);
-    return newTt;
-}
