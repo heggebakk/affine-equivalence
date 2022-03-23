@@ -28,10 +28,18 @@ TruthTable *createTruthTable(TruthTable *tt) {
     TruthTable *a2 = randomLinearPermutation(dimension);
     size_t c = rand() % 1L << dimension;
     for (int i = 0; i < 1L << dimension; ++i) {
-        fscanf(fp, "%zu", &tt->elements[i]);
+        a1->elements[i] = (a1->elements[i] + c) % (1L << dimension);
+        a2->elements[i] = (a2->elements[i] + c) % (1L << dimension);
     }
-    fclose(fp);
-    return tt;
+    printTruthTable(a1);
+    printTruthTable(a2);
 
+    TruthTable *temp = compose(tt, a2);
+    TruthTable *g = compose(a1, temp);
+
+    destroyTruthTable(a1);
+    destroyTruthTable(a2);
+    destroyTruthTable(temp);
+    return g;
 }
 
