@@ -5,12 +5,6 @@
 #include <memory.h>
 #include "affine.h"
 
-void createBucketsMap(BucketsMap *bucketsMap, struct Node **domains, struct Partition *pG, size_t dimension,
-                      size_t numOfMappings);
-
-void selectRecursive(int i, bool *chosen, struct Node **domains, struct Partition *pG, size_t dimension,
-                     BucketsMap *bucketsMap);
-
 TruthTable *parseFile(char *file) {
     size_t dimension;
     FILE *fp = fopen(file, "r");
@@ -67,7 +61,43 @@ BucketsMap *mapBuckets(struct Partition *f, struct Partition *g, size_t dimensio
         }
     }
     free(isCalculated);
-    printf("Num mappings = %zu", numOfMappings);
+
+    bucketsMap->domains = malloc(sizeof(size_t *) * numOfMappings);
+    bucketsMap->mappings = malloc(sizeof(size_t *) * numOfMappings);
+    createBucketsMap(bucketsMap, domains, g);
+}
+
+void createBucketsMap(BucketsMap *bucketsMap, struct Node **domains, struct Partition *pG) {
+    bool *chosen = malloc(sizeof (bool) * pG->numBuckets);
+    size_t *currentDomain = malloc(sizeof(size_t) * pG->numBuckets);
+    memset(chosen, 0, sizeof(bool) * pG->numBuckets);
+    selectRecursive(0, chosen, domains, pG, bucketsMap, currentDomain);
+}
+
+void selectRecursive(int i, bool *chosen, struct Node **domains, struct Partition *pG, BucketsMap *bucketsMap,
+                     size_t *currentDomain) {
+    size_t domainSize = 0;
+    if (i == pG->numBuckets) {
+        addDomain(bucketsMap, domainSize, currentDomain);
+        return;
+    }
+    Node *current = domains[i]->next;
+    while (current != NULL) {
+        if (!chosen[current->data]) { // Check if we already have used the current data for the construction
+            currentDomain[i] = current->data;
+            chosen[current->data] = true;
+            selectRecursive(i + 1, chosen, domains, pG, bucketsMap, currentDomain);
+            chosen[current->data] = false;
+        }
+        current = current->next;
+    }
+}
+
+void addDomain(BucketsMap *bucketsMap, size_t domainSize, size_t *domain) {
+    size_t size = bucketsMap->numOfMappings;
+    bucketsMap->domains[size] = malloc(sizeof(size_t*) * domainSize);
+    memcpy(bucketsMap->domains[size], domain, sizeof(size) * domainSize);
+    bucketsMap->numOfMappings += 1;
 }
 
 void calculateMultiplicities(TruthTable *truthTable, size_t *multiplicities) {
