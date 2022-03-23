@@ -33,7 +33,7 @@ BucketsMap *mapBuckets(struct Partition *f, struct Partition *g, size_t dimensio
     }
 
     // Find all domains for the different buckets.
-    struct Node **domains = malloc(sizeof(struct Node) * f->numBuckets);
+    struct Node **domains = malloc(sizeof(Node) * f->numBuckets);
     for (int i = 0; i < f->numBuckets; ++i) domains[i] = initNode();
 
     for (int i = 0; i < f->numBuckets; ++i) {
@@ -63,8 +63,7 @@ BucketsMap *mapBuckets(struct Partition *f, struct Partition *g, size_t dimensio
     free(isCalculated);
 
     bucketsMap->domains = malloc(sizeof(size_t *) * numOfMappings);
-    bucketsMap->mappings = malloc(sizeof(size_t *) * numOfMappings);
-    createBucketsMap(bucketsMap, domains, g);
+    createBucketsMap(bucketsMap, domains, f);
 
     // Free memory for domains
     for (int i = 0; i < f->numBuckets; ++i) {
@@ -75,14 +74,17 @@ BucketsMap *mapBuckets(struct Partition *f, struct Partition *g, size_t dimensio
     return bucketsMap;
 }
 
-void createBucketsMap(BucketsMap *bucketsMap, struct Node **domains, struct Partition *pG) {
-    bool *chosen = malloc(sizeof (bool) * pG->numBuckets);
-    size_t *currentDomain = malloc(sizeof(size_t) * pG->numBuckets);
-    memset(chosen, 0, sizeof(bool) * pG->numBuckets);
-    selectRecursive(0, chosen, domains, pG, bucketsMap, currentDomain);
+void createBucketsMap(BucketsMap *bucketsMap, Node **domains, Partition *partition) {
+    bool *chosen = malloc(sizeof (bool) * partition->numBuckets);
+    size_t *currentDomain = malloc(sizeof(size_t) * partition->numBuckets);
+    memset(chosen, 0, sizeof(bool) * partition->numBuckets);
+    selectRecursive(0, chosen, domains, partition, bucketsMap, currentDomain);
+
+    free(chosen);
+    free(currentDomain);
 }
 
-void selectRecursive(int i, bool *chosen, struct Node **domains, struct Partition *pG, BucketsMap *bucketsMap,
+void selectRecursive(int i, bool *chosen, Node **domains, Partition *pG, BucketsMap *bucketsMap,
                      size_t *currentDomain) {
     size_t domainSize = 0;
     if (i == pG->numBuckets) {

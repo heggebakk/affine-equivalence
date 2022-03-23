@@ -5,13 +5,13 @@
  * Parse file containing a truth table
  * @param file The file path
  */
-struct TruthTable * parseFile(char *file);
+TruthTable * parseFile(char *file);
 
-struct BucketsMap *mapBuckets(struct Partition *f, struct Partition *g, size_t dimension);
+BucketsMap *mapBuckets(Partition *f, Partition *g, size_t dimension);
 
-void createBucketsMap(BucketsMap *bucketsMap, struct Node **domains, struct Partition *pG);
+void createBucketsMap(BucketsMap *bucketsMap, Node **domains, Partition *partition);
 
-void selectRecursive(int i, bool *chosen, struct Node **domains, struct Partition *pG, BucketsMap *bucketsMap,
+void selectRecursive(int i, bool *chosen, Node **domains, Partition *pG, BucketsMap *bucketsMap,
                      size_t *currentDomain);
 
 void addDomain(BucketsMap *bucketsMap, size_t domainSize, size_t *domain);
