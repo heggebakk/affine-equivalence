@@ -61,7 +61,6 @@ void destroyNodes(Node *head);
 
 typedef struct BucketsMap {
     size_t **domains;
-    size_t **mappings;
     size_t numOfMappings;
 } BucketsMap;
 

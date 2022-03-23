@@ -153,14 +153,8 @@ BucketsMap *initBucketsMap() {
 
 void destroyBucketsMap(BucketsMap *bucketsMap) {
     for (int i = 0; i < bucketsMap->numOfMappings; ++i) {
-        if (bucketsMap->domains[i] != NULL) {
-            free(bucketsMap->domains[i]);
-        }
-        if (bucketsMap->mappings[i] != NULL) {
-            free(bucketsMap->mappings);
-        }
+        free(bucketsMap->domains[i]);
     }
     free(bucketsMap->domains);
-    free(bucketsMap->mappings);
     free(bucketsMap);
 }
