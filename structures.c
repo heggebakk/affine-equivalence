@@ -12,6 +12,17 @@ TruthTable *initTruthTable(size_t dimension) {
     return newTt;
 }
 
+void printTruthTable(TruthTable *truthTable) {
+    for (int i = 0; i < 1L << truthTable->dimension; ++i) {
+        if (i < (1L << truthTable->dimension) - 1) {
+            printf("%zu ", truthTable->elements[i]);
+        } else {
+            printf("%zu\n", truthTable->elements[i]);
+        }
+    }
+    printf("\n");
+}
+
 void destroyTruthTable(TruthTable *truthTable) {
     free(truthTable->elements);
     free(truthTable);
@@ -25,17 +36,30 @@ Partition *initPartition(size_t dimension) {
     partition->numBuckets = 0;
 }
 
+void printPartition(Partition *partition) {
+    for (int i = 0; i < partition->numBuckets; ++i) {
+        for (int j = 0; j < partition->bucketSizes[i]; ++j) {
+            if (j == partition->bucketSizes[i] - 1) {
+                printf("%zu\n", partition->buckets[i][j]);
+            } else {
+                printf("%zu ", partition->buckets[i][j]);
+            }
+        }
+    }
+    printf("\n");
+}
+
 Partition *partitionTt(TruthTable *truthTable) {
-    Partition *partition;
     size_t dimension = truthTable->dimension;
     size_t *multiplicities = malloc(sizeof(size_t) * 1L << dimension);
+    Partition *partition = initPartition(dimension);
     memset(multiplicities, 0, sizeof (size_t) * 1L << dimension);
     calculateMultiplicities(truthTable, multiplicities);
+
     for (int i = 0; i < 1L << dimension; ++i) {
         printf("%zu ", multiplicities[i]);
     }
     printf("\n");
-    partition = initPartition(1L << dimension);
 
     for (int i = 0; i < 1L << dimension; ++i) {
         size_t numBuckets = partition->numBuckets; // init value = 0
@@ -110,4 +134,10 @@ void printNodes(Node *head) {
         current = current->next;
     }
     printf("\n");
+}
+
+BucketsMap *initBucketsMap() {
+    BucketsMap *new = malloc(sizeof(BucketsMap));
+    new->numOfMappings = 0;
+    return new;
 }

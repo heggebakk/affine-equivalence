@@ -21,6 +21,8 @@ typedef struct TruthTable {
  */
 TruthTable *initTruthTable(size_t dimension);
 
+void printTruthTable(TruthTable *truthTable);
+
 /**
  * Free memory for struct TruthTable
  * @param truthTable The truth table to be freed
@@ -35,6 +37,8 @@ typedef struct Partition {
 } Partition;
 
 Partition *initPartition(size_t dimension);
+
+void printPartition(Partition *partition);
 
 Partition *partitionTt(TruthTable *truthTable);
 
@@ -58,5 +62,7 @@ typedef struct BucketsMap {
     size_t **mappings;
     size_t numOfMappings;
 } BucketsMap;
+
+BucketsMap *initBucketsMap();
 
 #endif //AFFINE_STRUCTURES_H

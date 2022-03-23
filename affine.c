@@ -5,6 +5,12 @@
 #include <memory.h>
 #include "affine.h"
 
+void createBucketsMap(BucketsMap *bucketsMap, struct Node **domains, struct Partition *pG, size_t dimension,
+                      size_t numOfMappings);
+
+void selectRecursive(int i, bool *chosen, struct Node **domains, struct Partition *pG, size_t dimension,
+                     BucketsMap *bucketsMap);
+
 TruthTable *parseFile(char *file) {
     size_t dimension;
     FILE *fp = fopen(file, "r");
@@ -25,10 +31,11 @@ TruthTable *parseFile(char *file) {
     return tt;
 }
 
-struct BucketsMap *mapBuckets(struct Partition *f, struct Partition *g, size_t dimension) {
+BucketsMap *mapBuckets(struct Partition *f, struct Partition *g, size_t dimension) {
+    BucketsMap *bucketsMap = initBucketsMap();
     if (f->numBuckets != g->numBuckets) {
-        printf("The partition of F and G is not equal\n");
-        exit(1);
+        printf("F and G is not affine\n");
+        exit(0);
     }
 
     // Find all domains for the different buckets.
@@ -43,10 +50,9 @@ struct BucketsMap *mapBuckets(struct Partition *f, struct Partition *g, size_t d
                 addNode(domains[i], j);
             }
         }
-        printNodes(domains[i]);
         if (!sameSize) {
-            printf("Partition F and G does not have the same bucket sizes!\n");
-            exit(1);
+            printf("F and G is not affine!\n");
+            exit(0);
         }
     }
 
@@ -54,12 +60,10 @@ struct BucketsMap *mapBuckets(struct Partition *f, struct Partition *g, size_t d
     bool *isCalculated = malloc(sizeof(bool) * f->numBuckets);
     memset(isCalculated, 0, sizeof(bool) * f->numBuckets);
     for (int i = 0; i < f->numBuckets; ++i) {
-        for (int j = 0; j < g->numBuckets; ++j) {
-            Node *current = domains[i]->next;
-            if (!isCalculated[current->data]) {
-                isCalculated[current->data] = true;
-                numOfMappings = numOfMappings * factorial(countNodes(domains[i]));
-            }
+        Node *current = domains[i]->next;
+        if (!isCalculated[current->data]) {
+            isCalculated[current->data] = true;
+            numOfMappings *= factorial(countNodes(domains[i]));
         }
     }
     free(isCalculated);
