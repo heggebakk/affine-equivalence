@@ -68,4 +68,11 @@ BucketsMap *initBucketsMap();
 
 void destroyBucketsMap(BucketsMap *bucketsMap);
 
+typedef struct TtNode {
+    TruthTable *data;
+    struct TtNode *next;
+} TtNode;
+
+TtNode *initTtNode();
+
 #endif //AFFINE_STRUCTURES_H

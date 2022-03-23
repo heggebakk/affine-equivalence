@@ -158,3 +158,14 @@ void destroyBucketsMap(BucketsMap *bucketsMap) {
     free(bucketsMap->domains);
     free(bucketsMap);
 }
+
+/*
+ * Truth Table Node for Linked list
+ */
+
+TtNode *initTtNode() {
+    TtNode *newNode = malloc(sizeof(TtNode));
+    newNode->data = NULL;
+    newNode->next = NULL;
+    return newNode;
+}
