@@ -136,8 +136,31 @@ void printNodes(Node *head) {
     printf("\n");
 }
 
+void destroyNodes(Node *head) {
+    Node *current = NULL;
+    while (head != NULL) {
+        current = head;
+        head = head->next;
+        free(current);
+    }
+}
+
 BucketsMap *initBucketsMap() {
     BucketsMap *new = malloc(sizeof(BucketsMap));
     new->numOfMappings = 0;
     return new;
+}
+
+void destroyBucketsMap(BucketsMap *bucketsMap) {
+    for (int i = 0; i < bucketsMap->numOfMappings; ++i) {
+        if (bucketsMap->domains[i] != NULL) {
+            free(bucketsMap->domains[i]);
+        }
+        if (bucketsMap->mappings[i] != NULL) {
+            free(bucketsMap->mappings);
+        }
+    }
+    free(bucketsMap->domains);
+    free(bucketsMap->mappings);
+    free(bucketsMap);
 }

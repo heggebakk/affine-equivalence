@@ -18,7 +18,10 @@ int main(int argc, char *argv[]) {
     BucketsMap *bucketsMap = mapBuckets(partitionF, partitionG, functionF->dimension);
 
     destroyTruthTable(functionF);
+    destroyTruthTable(functionG);
     destroyPartition(partitionF);
+    destroyPartition(partitionG);
+    destroyBucketsMap(bucketsMap);
     return 0;
 }
 

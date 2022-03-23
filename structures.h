@@ -57,6 +57,8 @@ size_t countNodes(Node *head);
 
 void printNodes(Node *head);
 
+void destroyNodes(Node *head);
+
 typedef struct BucketsMap {
     size_t **domains;
     size_t **mappings;
@@ -64,5 +66,7 @@ typedef struct BucketsMap {
 } BucketsMap;
 
 BucketsMap *initBucketsMap();
+
+void destroyBucketsMap(BucketsMap *bucketsMap);
 
 #endif //AFFINE_STRUCTURES_H

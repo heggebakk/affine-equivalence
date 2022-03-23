@@ -65,6 +65,13 @@ BucketsMap *mapBuckets(struct Partition *f, struct Partition *g, size_t dimensio
     bucketsMap->domains = malloc(sizeof(size_t *) * numOfMappings);
     bucketsMap->mappings = malloc(sizeof(size_t *) * numOfMappings);
     createBucketsMap(bucketsMap, domains, g);
+
+    for (int i = 0; i < numOfMappings; ++i) {
+        destroyNodes(domains[i]);
+    }
+    free(domains);
+
+    return bucketsMap;
 }
 
 void createBucketsMap(BucketsMap *bucketsMap, struct Node **domains, struct Partition *pG) {
