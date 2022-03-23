@@ -13,4 +13,12 @@ size_t factorial(size_t value);
 
 void calculateMultiplicities(TruthTable *truthTable, size_t *multiplicities);
 
+TruthTable *randomLinearPermutation(size_t dimension);
+
+TruthTable *randomLinearFunction(size_t dimension);
+
+TruthTable * compose(TruthTable *dest, TruthTable *src);
+
+void add(TruthTable *dest, TruthTable *src);
+
 #endif //AFFINE_AFFINE_H

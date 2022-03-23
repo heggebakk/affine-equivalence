@@ -85,3 +85,66 @@ size_t factorial(size_t value) {
     }
     return factorial;
 }
+
+void add(TruthTable *dest, TruthTable *src) {
+    for (int i = 0; i < 1L << dest->dimension; ++i) {
+        dest->elements[i] ^= src->elements[i];
+    }
+}
+
+TruthTable * compose(TruthTable *dest, TruthTable *src) {
+    size_t dimension = dest->dimension;
+    TruthTable *result = initTruthTable(dimension);
+    for (int x = 0; x < 1L << dimension; ++x) {
+        result->elements[x] = dest->elements[src->elements[x]];
+    }
+    return result;
+}
+
+TruthTable *randomLinearFunction(size_t dimension) {
+    size_t entries = 1L << dimension;
+    size_t basisImages[dimension];
+    size_t listGenerated[entries];
+    listGenerated[0] = 0;
+    for (int i = 0; i < dimension; ++i) {
+        size_t j = rand() % entries;
+        basisImages[i] = j;
+        for (int k = 0; k < 1L << i; ++k) {
+            listGenerated[(1L << i) + k] = listGenerated[k] ^ j;
+        }
+    }
+    TruthTable *result = initTruthTable(dimension);
+    memcpy(result->elements, listGenerated, sizeof(size_t) * entries);
+    return result;
+}
+
+TruthTable *randomLinearPermutation(size_t dimension) {
+    size_t entries = 1L << dimension;
+    size_t listGenerated[entries];
+    size_t basisImages[dimension];
+    bool *generated = malloc(sizeof(bool) * entries);
+    memset(generated, 0, sizeof (bool) * entries);
+    generated[0] = true;
+    listGenerated[0] = 0;
+
+    for (int i = 0; i < dimension; ++i) {
+        size_t j = rand() % entries;
+        while (generated[j]) {
+            j = (j + 1) % entries;
+        }
+        basisImages[i] = j;
+        for (int k = 0; k < 1L << i; ++k) {
+            listGenerated[1L << i ^ k] = listGenerated[k] ^ j;
+            generated[listGenerated[k] ^ j] = true;
+        }
+    }
+
+    size_t c = rand() % entries;
+    for (int i = 0; i < entries; ++i) {
+        listGenerated[i] += (listGenerated[i] + c) % entries;
+    }
+    TruthTable *result = initTruthTable(dimension);
+    memcpy(result->elements, listGenerated, sizeof(size_t) * entries);
+    free(generated);
+    return result;
+}
