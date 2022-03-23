@@ -29,13 +29,21 @@ void calculateMultiplicities(size_t i, size_t *multiplicities, TruthTable *truth
 Partition *initPartition(size_t dimension);
 
 int main(int argc, char *argv[]) {
-    char *filename = "resources/q_6_3.tt";
+    char *filename = "resources/q_6_1.tt";
     TruthTable *functionF = parseFile(filename);
-    Partition *partition = partitionTt(functionF);
-    BucketsMap *bucketsMap = mapBuckets(partition, partition, functionF->dimension);
+//    TruthTable *functionG = createTruthTable(functionF);
+    TruthTable *functionG = parseFile("resources/g.tt");
+    printTruthTable(functionF);
+    printTruthTable(functionG);
+    Partition *partitionF = partitionTt(functionF);
+    Partition *partitionG = partitionTt(functionG);
+    printf("\n");
+    printPartition(partitionF);
+    printPartition(partitionG);
+    BucketsMap *bucketsMap = mapBuckets(partitionF, partitionG, functionF->dimension);
 
     destroyTruthTable(functionF);
-    destroyPartition(partition);
+    destroyPartition(partitionF);
     return 0;
 }
 
