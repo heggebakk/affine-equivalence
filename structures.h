@@ -51,7 +51,7 @@ typedef struct Node {
 
 Node *initNode();
 
-void addNode(Node *head, int data);
+void addNode(Node *head, size_t data);
 
 size_t countNodes(Node *head);
 
@@ -74,5 +74,9 @@ typedef struct TtNode {
 } TtNode;
 
 TtNode *initTtNode();
+
+void addTtNode(TtNode *head, TruthTable *data);
+
+void destroyTtNode(TtNode *head);
 
 #endif //AFFINE_STRUCTURES_H

@@ -105,7 +105,7 @@ Node *initNode() {
     return newNode;
 }
 
-void addNode(Node *head, int data) {
+void addNode(Node *head, size_t data) {
     Node *newNode = initNode();
     newNode->data = data;
     newNode->next = head->next;
@@ -168,4 +168,32 @@ TtNode *initTtNode() {
     newNode->data = NULL;
     newNode->next = NULL;
     return newNode;
+}
+
+void addTtNode(TtNode *head, TruthTable *data) {
+    size_t dimension = data->dimension;
+    if (head->data == NULL) {
+        head->data = initTruthTable(dimension);
+        memcpy(head->data->elements, data->elements, sizeof(size_t) * 1L << dimension);
+        return;
+    }
+    TtNode *newNode = malloc(sizeof(TtNode));
+    newNode->data = initTruthTable(dimension);
+    memcpy(newNode->data->elements, data->elements, sizeof(size_t) * 1L << dimension);
+    newNode->next = head->next;
+    head->next = newNode;
+
+}
+
+void destroyTtNode(TtNode *head) {
+    if (head->data == NULL) {
+        free(head);
+        return;
+    }
+    while (head->data != NULL) {
+        TtNode *current = head;
+        head = head->next;
+        destroyTruthTable(current->data);
+        free(current);
+    }
 }
