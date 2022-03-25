@@ -12,6 +12,11 @@ int main(int argc, char *argv[]) {
     TruthTable *functionG = parseFile("resources/g.tt");
     printTruthTable(functionF);
     printTruthTable(functionG);
+
+    /* Cheating */
+    for(size_t i = 0; i < (1L << functionG->dimension); ++i) {
+      functionG->elements[i] ^= 10;
+    }
     Partition *partitionF = partitionTt(functionF);
     Partition *partitionG = partitionTt(functionG);
     printf("\n");
@@ -28,6 +33,7 @@ int main(int argc, char *argv[]) {
         // Calculate outer permutation
         outerPermutation(partitionF, partitionG, functionF->dimension, basis, l1, bucketsMap->domains[map]);
 
+
         destroyTtNode(l1);
     }
 
@@ -41,11 +47,9 @@ int main(int argc, char *argv[]) {
 }
 
 size_t *createBasis(size_t dimension) {
-    size_t *basis = malloc(sizeof(size_t) * (dimension + 1));
-    basis[0] = 0;
-    printf("Basis: %zu ", basis[0]);
-    for (size_t i = 1; i < dimension + 1; ++i) {
-        basis[i] = 1L << (i - 1);
+    size_t *basis = malloc(sizeof(size_t) * (dimension));
+    for (size_t i = 0; i < dimension; ++i) {
+        basis[i] = 1L << i;
         printf("%zu ", basis[i]);
     }
     printf("\n");
