@@ -77,6 +77,8 @@ TtNode *initTtNode();
 
 void addTtNode(TtNode *head, TruthTable *data);
 
+TruthTable *getTtNode(TtNode *head, size_t index);
+
 size_t countTtNodes(TtNode *head);
 
 void destroyTtNode(TtNode *head);

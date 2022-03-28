@@ -184,6 +184,14 @@ void addTtNode(TtNode *head, TruthTable *data) {
     head->next = newNode;
 }
 
+TruthTable *getTtNode(TtNode *head, size_t index) {
+    TtNode *current = head;
+    for (size_t i = 0; i < index; ++i) {
+        current = current->next;
+    }
+    return current->data;
+}
+
 size_t countTtNodes(TtNode *head) {
     if (head->data == NULL) return 0;
     size_t count = 1;
