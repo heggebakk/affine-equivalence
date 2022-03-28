@@ -216,7 +216,7 @@ void outerPermutation(Partition *f, Partition *g, size_t dimension, size_t *basi
     bool *generatedImages = malloc(sizeof(bool) * 1L << dimension);
     memset(generated, 0, sizeof(size_t) * 1L << dimension);
     memset(generatedImages, 0, sizeof(bool) * 1L << dimension);
-    generatedImages[0] = true;
+    //generatedImages[0] = true;
 
     /**
      * Create dictionaries indexing buckets by elements
@@ -243,7 +243,9 @@ guessValuesOfL(size_t k, size_t *basis, size_t *images, Partition *f, Partition 
      * linear permutation preserving the partition. We reconstruct its truth table, and add it to the linked list
      * containing all permutations found by the search.
      */
+  //printf("Current k is %lu\n", k);
     if (k == dimension) {
+	//printf("We have found something! Woo!\n");
         TruthTable *new = initTruthTable(dimension);
         memcpy(new->elements, generated, sizeof(size_t) * 1L << dimension);
         addTtNode(l1, new);
@@ -302,6 +304,8 @@ guessValuesOfL(size_t k, size_t *basis, size_t *images, Partition *f, Partition 
              // Check for contradiction as described above
              if (f->bucketSizes[fClass[x]] != g->bucketSizes[gClass[y]]) {
                  problem = true;
+		  //printf("Right now ck is %lu\n", ck);
+		  //printf("Contradiction is due to %lu -> %lu\n",x ,y );
                  break;
              }
 
