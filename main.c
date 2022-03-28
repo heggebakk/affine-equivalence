@@ -3,6 +3,8 @@
 
 size_t *createBasis(size_t dimension);
 
+void addConstant(TruthTable *tt, size_t c);
+
 int main(int argc, char *argv[]) {
     char *filename = "resources/q_6_1.tt";
     size_t dimension;
@@ -12,38 +14,54 @@ int main(int argc, char *argv[]) {
     TruthTable *functionG = parseFile("resources/g.tt");
     printTruthTable(functionF);
     printTruthTable(functionG);
-
-    /* Cheating */
-    for(size_t i = 0; i < (1L << functionG->dimension); ++i) {
-      functionG->elements[i] ^= 10;
-    }
     Partition *partitionF = partitionTt(functionF);
-    Partition *partitionG = partitionTt(functionG);
-    printf("\n");
-    printPartition(partitionF);
-    printPartition(partitionG);
     dimension = functionF->dimension;
     basis = createBasis(dimension);
-    BucketsMap *bucketsMap = mapBuckets(partitionF, partitionG);
 
-    for (size_t map = 0; map < bucketsMap->numOfMappings; ++map) {
-        TtNode *l1 = initTtNode();
-        bool foundSolution = false;
+    /* Cheating */
+    // Need to test for all possible constants, 0..2^n - 1.
+    for (int c = 0; c < 1L << dimension; ++c) {
+        TruthTable *gPrime = initTruthTable(dimension);
+        memcpy(gPrime->elements, functionG->elements, sizeof(size_t) * 1L << dimension);
+        addConstant(gPrime, c);
+        Partition *partitionG = partitionTt(gPrime);
+        printf("\n");
+        BucketsMap *bucketsMap = mapBuckets(partitionF, partitionG);
+        destroyTruthTable(gPrime);
 
-        // Calculate outer permutation
-        outerPermutation(partitionF, partitionG, functionF->dimension, basis, l1, bucketsMap->domains[map]);
+        printf("Num of domains: %zu\n", bucketsMap->numOfMappings);
 
+        for (size_t map = 0; map < bucketsMap->numOfMappings; ++map) {
+            printPartition(partitionF);
+            printPartition(partitionG);
+            TtNode *l1 = initTtNode();
+            bool foundSolution = false;
 
-        destroyTtNode(l1);
+            // Calculate outer permutation
+            outerPermutation(partitionF, partitionG, dimension, basis, l1, bucketsMap->domains[map]);
+            size_t numPermutations = countTtNodes(l1);
+            printf("Number of permutations = %zu\n", numPermutations);
+
+            for (size_t i = 0; i < numPermutations; ++i) {
+            }
+            destroyTtNode(l1);
+        }
+        destroyBucketsMap(bucketsMap);
+        destroyPartition(partitionG);
     }
 
     destroyTruthTable(functionF);
     destroyTruthTable(functionG);
     destroyPartition(partitionF);
-    destroyPartition(partitionG);
     free(basis);
-    destroyBucketsMap(bucketsMap);
     return 0;
+}
+
+void addConstant(TruthTable *tt, size_t c) {
+    size_t dimension = tt->dimension;
+    for (size_t i = 0; i < 1L << dimension; ++i) {
+        tt->elements[i] ^= c;
+    }
 }
 
 size_t *createBasis(size_t dimension) {

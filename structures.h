@@ -77,6 +77,8 @@ TtNode *initTtNode();
 
 void addTtNode(TtNode *head, TruthTable *data);
 
+size_t countTtNodes(TtNode *head);
+
 void destroyTtNode(TtNode *head);
 
 #endif //AFFINE_STRUCTURES_H

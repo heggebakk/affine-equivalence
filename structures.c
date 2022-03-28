@@ -182,7 +182,17 @@ void addTtNode(TtNode *head, TruthTable *data) {
     memcpy(newNode->data->elements, data->elements, sizeof(size_t) * 1L << dimension);
     newNode->next = head->next;
     head->next = newNode;
+}
 
+size_t countTtNodes(TtNode *head) {
+    if (head->data == NULL) return 0;
+    size_t count = 1;
+    TtNode *current = head;
+    while (current->next != NULL) {
+        count += 1;
+        current = current->next;
+    }
+    return count;
 }
 
 void destroyTtNode(TtNode *head) {
@@ -195,5 +205,9 @@ void destroyTtNode(TtNode *head) {
         head = head->next;
         destroyTruthTable(current->data);
         free(current);
+        if (head == NULL) {
+            free(head);
+            break;
+        }
     }
 }

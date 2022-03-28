@@ -28,8 +28,7 @@ TruthTable *parseFile(char *file) {
 BucketsMap *mapBuckets(struct Partition *f, struct Partition *g) {
     BucketsMap *bucketsMap = initBucketsMap();
     if (f->numBuckets != g->numBuckets) {
-        printf("F and G is not affine\n");
-        exit(0);
+        return bucketsMap;
     }
 
     // Find all domains for the different buckets.
@@ -45,8 +44,7 @@ BucketsMap *mapBuckets(struct Partition *f, struct Partition *g) {
             }
         }
         if (!sameSize) {
-            printf("F and G is not affine!\n");
-            exit(0);
+            return NULL;
         }
     }
 
@@ -222,8 +220,8 @@ void outerPermutation(Partition *f, Partition *g, size_t dimension, size_t *basi
      * Create dictionaries indexing buckets by elements
      * For instance, fClassPosition[i] would be the index of the bucket w.r.t. f containing the element i.
      */
-    size_t *fClass = createClassFromDomain(f, dimension);
-    size_t *gClass = createClassFromDomain(g, dimension);
+    size_t *fClass = createClassRepresentation(f, dimension);
+    size_t *gClass = createClassRepresentation(g, dimension);
 
     // Recursively guess the values of l on the basis (essentially, a dfs with backtracking upon contradiction
     guessValuesOfL(0, basis, images, f, g, dimension, generated, generatedImages, l1, fClass, gClass, domain);
@@ -243,9 +241,7 @@ guessValuesOfL(size_t k, size_t *basis, size_t *images, Partition *f, Partition 
      * linear permutation preserving the partition. We reconstruct its truth table, and add it to the linked list
      * containing all permutations found by the search.
      */
-  //printf("Current k is %lu\n", k);
     if (k == dimension) {
-	//printf("We have found something! Woo!\n");
         TruthTable *new = initTruthTable(dimension);
         memcpy(new->elements, generated, sizeof(size_t) * 1L << dimension);
         addTtNode(l1, new);
@@ -337,13 +333,15 @@ guessValuesOfL(size_t k, size_t *basis, size_t *images, Partition *f, Partition 
     }
 }
 
-size_t *createClassFromDomain(Partition *partition, size_t dimension) {
+size_t *createClassRepresentation(Partition *partition, size_t dimension) {
     // Loop over each bucket and set the bucket pos for each value
+//    printf("Partition: \n");
+//    printPartition(partition);
     size_t *class = malloc(sizeof(size_t) * 1L << dimension);
     for (size_t i = 0; i < partition->numBuckets; ++i) {
         for (size_t j = 0; j < partition->bucketSizes[i]; ++j) {
             size_t value = partition->buckets[i][j];
-            class[value] = i; // Set the bucket number in the posistion of the value
+            class[value] = i; // Set the bucket number in the position of the value
         }
     }
     return class;
