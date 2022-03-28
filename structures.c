@@ -57,11 +57,6 @@ Partition *partitionTt(TruthTable *truthTable) {
     calculateMultiplicities(truthTable, multiplicities);
 
     for (int i = 0; i < 1L << dimension; ++i) {
-        printf("%zu ", multiplicities[i]);
-    }
-    printf("\n");
-
-    for (int i = 0; i < 1L << dimension; ++i) {
         size_t numBuckets = partition->numBuckets; // init value = 0
         size_t multiplicity = multiplicities[i]; // Get i'th element in list of multiplicities
 

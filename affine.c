@@ -130,7 +130,7 @@ void add(TruthTable *dest, TruthTable *src) {
     }
 }
 
-TruthTable * compose(TruthTable *dest, TruthTable *src) {
+TruthTable *compose(TruthTable *dest, TruthTable *src) {
     size_t dimension = dest->dimension;
     TruthTable *result = initTruthTable(dimension);
     for (size_t x = 0; x < 1L << dimension; ++x) {
@@ -335,8 +335,6 @@ guessValuesOfL(size_t k, size_t *basis, size_t *images, Partition *f, Partition 
 
 size_t *createClassRepresentation(Partition *partition, size_t dimension) {
     // Loop over each bucket and set the bucket pos for each value
-//    printf("Partition: \n");
-//    printPartition(partition);
     size_t *class = malloc(sizeof(size_t) * 1L << dimension);
     for (size_t i = 0; i < partition->numBuckets; ++i) {
         for (size_t j = 0; j < partition->bucketSizes[i]; ++j) {

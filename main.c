@@ -25,22 +25,16 @@ int main(int argc, char *argv[]) {
         memcpy(gPrime->elements, functionG->elements, sizeof(size_t) * 1L << dimension);
         addConstant(gPrime, c);
         Partition *partitionG = partitionTt(gPrime);
-        printf("\n");
         BucketsMap *bucketsMap = mapBuckets(partitionF, partitionG);
         destroyTruthTable(gPrime);
 
-        printf("Num of domains: %zu\n", bucketsMap->numOfMappings);
-
         for (size_t map = 0; map < bucketsMap->numOfMappings; ++map) {
-            printPartition(partitionF);
-            printPartition(partitionG);
             TtNode *l1 = initTtNode();
             bool foundSolution = false;
 
             // Calculate outer permutation
             outerPermutation(partitionF, partitionG, dimension, basis, l1, bucketsMap->domains[map]);
             size_t numPermutations = countTtNodes(l1);
-            printf("Number of permutations = %zu\n", numPermutations);
 
             for (size_t i = 0; i < numPermutations; ++i) {
             }
