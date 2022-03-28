@@ -38,4 +38,6 @@ guessValuesOfL(size_t k, size_t *basis, size_t *images, Partition *f, Partition 
 
 size_t *createClassRepresentation(Partition *partition, size_t dimension);
 
+TruthTable * inverse(TruthTable *truthTable);
+
 #endif //AFFINE_AFFINE_H

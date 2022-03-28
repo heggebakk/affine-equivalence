@@ -346,3 +346,13 @@ size_t *createClassRepresentation(Partition *partition, size_t dimension) {
     }
     return class;
 }
+
+TruthTable *inverse(TruthTable *truthTable) {
+    size_t dimension = truthTable->dimension;
+    TruthTable *result = initTruthTable(dimension);
+    for (int x = 0; x < 1L << dimension; ++x) {
+        size_t y = truthTable->elements[x];
+        result->elements[y] = x;
+    }
+    return result;
+}
