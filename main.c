@@ -37,6 +37,15 @@ int main(int argc, char *argv[]) {
             size_t numPermutations = countTtNodes(l1);
 
             for (size_t i = 0; i < numPermutations; ++i) {
+                TruthTable *l1Prime = getTtNode(l1, i);
+                TruthTable *l1Inverse = inverse(l1Prime);
+                TruthTable *gDPrime = compose(l1Inverse, functionG);
+                TruthTable *lPrime;
+                TruthTable *l2 = initTruthTable(dimension);
+
+                destroyTruthTable(l1Inverse);
+                destroyTruthTable(gDPrime);
+                destroyTruthTable(l2);
             }
             destroyTtNode(l1);
         }
