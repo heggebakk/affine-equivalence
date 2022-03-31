@@ -29,25 +29,27 @@ int main(int argc, char *argv[]) {
         destroyTruthTable(gPrime);
 
         for (size_t map = 0; map < bucketsMap->numOfMappings; ++map) {
-            TtNode *l1 = initTtNode();
+            // Calculate outer permutation
+            TtNode *a1 = outerPermutation(partitionF, partitionG, dimension, basis, bucketsMap->domains[map]);
+            size_t numPermutations = countTtNodes(a1);
             bool foundSolution = false;
 
-            // Calculate outer permutation
-            outerPermutation(partitionF, partitionG, dimension, basis, l1, bucketsMap->domains[map]);
-            size_t numPermutations = countTtNodes(l1);
-
             for (size_t i = 0; i < numPermutations; ++i) {
-                TruthTable *l1Prime = getTtNode(l1, i);
-                TruthTable *l1Inverse = inverse(l1Prime);
-                TruthTable *gDPrime = compose(l1Inverse, functionG);
-                TruthTable *lPrime;
-                TruthTable *l2 = initTruthTable(dimension);
+                TruthTable *a1Prime = getTtNode(a1, i);
+                TruthTable *a1Inverse = inverse(a1Prime);
+                TruthTable *gDPrime = compose(a1Inverse, functionG);
+                TruthTable *aPrime;
+                TruthTable *a2 = initTruthTable(dimension);
 
-                destroyTruthTable(l1Inverse);
+//                if (innerPermutation(functionF, gDPrime, basis, a2, aPrime)) {
+//
+//                }
+
+                destroyTruthTable(a1Inverse);
                 destroyTruthTable(gDPrime);
-                destroyTruthTable(l2);
+                destroyTruthTable(a2);
             }
-            destroyTtNode(l1);
+            destroyTtNode(a1);
         }
         destroyBucketsMap(bucketsMap);
         destroyPartition(partitionG);

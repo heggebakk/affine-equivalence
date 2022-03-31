@@ -30,11 +30,11 @@ void add(TruthTable *dest, TruthTable *src);
 
 TruthTable *createTruthTable(TruthTable *tt);
 
-void outerPermutation(Partition *f, Partition *g, size_t dimension, size_t *basis, TtNode *l1, size_t *domain);
+TtNode * outerPermutation(Partition *f, Partition *g, size_t dimension, size_t *basis, size_t *domain);
 
 void
 guessValuesOfL(size_t k, size_t *basis, size_t *images, Partition *f, Partition *g, size_t dimension, size_t *generated,
-               bool *generatedImages, TtNode *l1, size_t *fClass, size_t *gClass, size_t *domain);
+               bool *generatedImages, TtNode *a1, size_t *fClass, size_t *gClass, size_t *domain);
 
 size_t *createClassRepresentation(Partition *partition, size_t dimension);
 

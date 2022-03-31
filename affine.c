@@ -208,13 +208,11 @@ TruthTable *createTruthTable(TruthTable *tt) {
     return g;
 }
 
-void outerPermutation(Partition *f, Partition *g, size_t dimension, size_t *basis, TtNode *l1, size_t *domain) {
+TtNode * outerPermutation(Partition *f, Partition *g, size_t dimension, size_t *basis, size_t *domain) {
+    TtNode *a1 = initTtNode();
     size_t *images = malloc(sizeof(size_t) * dimension); // The images of the basis elements under l
-    size_t *generated = malloc(sizeof(size_t) * 1L << dimension); // A partial truth table for l
-    bool *generatedImages = malloc(sizeof(bool) * 1L << dimension);
-    memset(generated, 0, sizeof(size_t) * 1L << dimension);
-    memset(generatedImages, 0, sizeof(bool) * 1L << dimension);
-    //generatedImages[0] = true;
+    size_t *generated = calloc(sizeof(size_t), 1L << dimension); // A partial truth table for l
+    bool *generatedImages = calloc(sizeof(bool), 1L << dimension);
 
     /**
      * Create dictionaries indexing buckets by elements
@@ -224,18 +222,19 @@ void outerPermutation(Partition *f, Partition *g, size_t dimension, size_t *basi
     size_t *gClass = createClassRepresentation(g, dimension);
 
     // Recursively guess the values of l on the basis (essentially, a dfs with backtracking upon contradiction
-    guessValuesOfL(0, basis, images, f, g, dimension, generated, generatedImages, l1, fClass, gClass, domain);
+    guessValuesOfL(0, basis, images, f, g, dimension, generated, generatedImages, a1, fClass, gClass, domain);
 
     free(images);
     free(generated);
     free(generatedImages);
     free(fClass);
     free(gClass);
+    return a1;
 }
 
 void
 guessValuesOfL(size_t k, size_t *basis, size_t *images, Partition *f, Partition *g, size_t dimension, size_t *generated,
-               bool *generatedImages, TtNode *l1, size_t *fClass, size_t *gClass, size_t *domain) {
+               bool *generatedImages, TtNode *a1, size_t *fClass, size_t *gClass, size_t *domain) {
     /**
      * If all basis elements have been assigned an image, and no contradictions have occurs, then we have found a
      * linear permutation preserving the partition. We reconstruct its truth table, and add it to the linked list
@@ -244,7 +243,7 @@ guessValuesOfL(size_t k, size_t *basis, size_t *images, Partition *f, Partition 
     if (k == dimension) {
         TruthTable *new = initTruthTable(dimension);
         memcpy(new->elements, generated, sizeof(size_t) * 1L << dimension);
-        addTtNode(l1, new);
+        addTtNode(a1, new);
         destroyTruthTable(new);
         return;
     }
@@ -314,7 +313,7 @@ guessValuesOfL(size_t k, size_t *basis, size_t *images, Partition *f, Partition 
         // If no contradiction is encountered, we go to the next basis element
         if (!problem) {
             images[k] = ck;
-            guessValuesOfL(k + 1, basis, images, f, g, dimension, generated, generatedImages, l1, fClass, gClass,
+            guessValuesOfL(k + 1, basis, images, f, g, dimension, generated, generatedImages, a1, fClass, gClass,
                            domain);
         }
 
