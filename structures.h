@@ -53,6 +53,8 @@ Node *initNode();
 
 void addNode(Node *head, size_t data);
 
+size_t getNode(Node *head, size_t index);
+
 size_t countNodes(Node *head);
 
 void printNodes(Node *head);

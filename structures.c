@@ -106,6 +106,13 @@ void addNode(Node *head, size_t data) {
     newNode->next = head->next;
     head->next = newNode;
 }
+size_t getNode(Node *head, size_t index) {
+    Node *current = head;
+    for (size_t i = 0; i < index; ++i) {
+        current = current->next;
+    }
+    return current->data;
+}
 
 size_t countNodes(Node *head) {
     size_t count = 0;
