@@ -5,6 +5,12 @@
 #include <memory.h>
 #include "affine.h"
 
+bool *computeSetOfTs(TruthTable *tt, const size_t x);
+
+Node *computeDomain(const bool *map, TruthTable *tt);
+
+bool inDomain(size_t value, Node **domain, size_t sum);
+
 TruthTable *parseFile(char *file) {
     size_t dimension;
     FILE *fp = fopen(file, "r");
@@ -347,19 +353,85 @@ size_t *createClassRepresentation(Partition *partition, size_t dimension) {
 TruthTable *inverse(TruthTable *truthTable) {
     size_t dimension = truthTable->dimension;
     TruthTable *result = initTruthTable(dimension);
-    for (int x = 0; x < 1L << dimension; ++x) {
+    for (size_t x = 0; x < 1L << dimension; ++x) {
         size_t y = truthTable->elements[x];
         result->elements[y] = x;
     }
     return result;
 }
 
-bool innerPermutation(TruthTable *f, TruthTable *g, const size_t *basis, TruthTable *a2, TruthTable *aPrime) {
-    size_t dimension = f->dimension;
-    Node **restrictedDomains = malloc(sizeof(Node **) * 1L << dimension);
+bool *computeSetOfTs(TruthTable *tt, const size_t x) {
+    size_t dimension = tt->dimension;
+    bool *map = calloc(sizeof(bool), 1L << dimension);
+    for (size_t y = 0; y < 1L << dimension; ++y) {
+        size_t t = tt->elements[x] ^ tt->elements[y] ^ tt->elements[x ^ y];
+        map[t] = true;
+    }
+    return map;
+}
 
-    createDomains(f, g, basis, dimension, restrictedDomains);
-    return isAffine(a2, basis, restrictedDomains);
+Node *computeDomain(const bool *map, TruthTable *tt) {
+    size_t dimension = tt->dimension;
+    bool *domain = calloc(sizeof(bool), 1L << dimension);
+    for (size_t i = 0; i < 1L << dimension; ++i) {
+        domain[i] = true;
+    }
+    for (size_t t = 0; t < 1L << dimension; ++t) {
+        if (map[t]) {
+            bool *tempSet = malloc(sizeof(bool) * 1L << dimension);
+            for (size_t x = 0; x < 1L << dimension; ++x) {
+                for (size_t y = 0; y < 1L << dimension; ++y) {
+                    if (t == (tt->elements[x] ^ tt->elements[y] ^ tt->elements[x ^ y])) {
+                        tempSet[x] = true;
+                        tempSet[y] = true;
+                        tempSet[x ^ y] = true;
+                    }
+                }
+            }
+            for (size_t i = 0; i < 1L << dimension; ++i) {
+                domain[i] &= tempSet[i];
+            }
+            free(tempSet);
+        }
+    }
+    Node *domainResult = initNode();
+    for (size_t i = 0; i < 1L << dimension; ++i) {
+        if (domain[i]) {
+            addNode(domainResult, i);
+        }
+    }
+    free(domain);
+    return domainResult;
+}
+
+bool
+innerPermutation(TruthTable *f, TruthTable *g, const size_t *basis, TruthTable *a2, TruthTable *aPrime) {
+    size_t dimension = f->dimension;
+    Node **restrictedDomains = malloc(sizeof(Node **) * (dimension + 1));
+
+    bool *map = computeSetOfTs(g, 0);
+    restrictedDomains[0] = computeDomain(map, f);
+    free(map);
+
+    for (size_t i = 0; i < dimension + 1; ++i) {
+        bool *map = computeSetOfTs(g, basis[i]);
+        restrictedDomains[i + 1] = computeDomain(map, f);
+        free(map);
+    }
+    printf("Restricted domains in inner permutation call:\n");
+    for (int i = 0; i < dimension + 1; ++i) {
+        printNodes(restrictedDomains[i]);
+    }
+
+    size_t *values = malloc(sizeof(size_t) * dimension);
+    bool result = dfs(restrictedDomains, 0, values, f, g, a2, aPrime, basis);
+    free(values);
+
+    for (size_t i = 0; i < dimension; ++i) {
+        destroyNodes(restrictedDomains[i]);
+    }
+    free(restrictedDomains);
+    return result;
 }
 
 bool dfs(Node **domains, size_t k, size_t *values, TruthTable *f, TruthTable *g, TruthTable *a2, TruthTable *aPrime,
@@ -369,21 +441,27 @@ bool dfs(Node **domains, size_t k, size_t *values, TruthTable *f, TruthTable *g,
         reconstructTruthTable(values, a2);
         aPrime = compose(f, a2);
         add(aPrime, g);
-        if (isAffine(aPrime, basis, NULL)) {
-            destroyTruthTable(aPrime);
+        if (isAffine(aPrime, basis, domains)) {
             return true;
         }
-
         destroyTruthTable(aPrime);
         return false;
     }
+    Node *current = domains[k];
+    while (current != NULL) {
+        values[k] = current->data;
+        bool affine = dfs(domains, k + 1, values, f, g, a2, aPrime, basis);
+        if (affine) return true;
+        current = current->next;
+    }
+    return false;
 }
 
 void reconstructTruthTable(const size_t *basisValues, TruthTable *a2) {
     size_t dimension = a2->dimension;
     for (size_t coordinate = 0; coordinate < 1L << dimension; ++coordinate) {
         size_t result = 0;
-        for (int i = 0; i < dimension; ++i) {
+        for (size_t i = 0; i < dimension; ++i) {
             if (1L << i & coordinate) {
                 result ^= basisValues[i];
             }
@@ -392,37 +470,25 @@ void reconstructTruthTable(const size_t *basisValues, TruthTable *a2) {
     }
 }
 
-void createDomains(const TruthTable *f, const TruthTable *g, const size_t *basis, size_t dimension, Node **restrictedDomains) {
-    for (size_t x = 0; x < 1L << dimension; ++x) {
-        size_t value = g->elements[x];
-        restrictedDomains[x] = initNode();
-        for (int y = 0; y < 1L << dimension; ++y) {
-            if (f->elements[y] == value) {
-                addNode(restrictedDomains[x], y);
-            }
+bool inDomain(size_t value, Node **domain, size_t sum) {
+    for (int i = 0; i < countNodes(domain[sum]); ++i) {
+        if (value == getNode(domain[sum], i)) {
+            return true;
         }
-//        printNodes(restrictedDomains[x]);
     }
+    return false;
 }
-
 bool isAffine(TruthTable *a2, const size_t *basis, Node **domains) {
     size_t dimension = a2->dimension;
-    for (int x = 0; x < dimension + 1; ++x) {
-        for (int y = x + 1; y < dimension + 1; ++y) {
-            for (int z = y + 1; z < dimension + 1; ++z) {
-                bool wat = false;
-                size_t sum = basis[x] ^ basis[y] ^ basis[z];
-                size_t value = a2->elements[basis[x]] ^ a2->elements[basis[y]] ^ a2->elements[basis[z]];
-                Node *domain = domains[sum];
-                printNodes(domain);
-                while (domain != NULL) {
-                    if (domain->data == value) {
-                        wat = true;
-                        break;
-                    }
-                    domain = domain->next;
+    for (size_t x = 0; x < dimension + 1; ++x) {
+        for (size_t y = x + 1; y < dimension + 1; ++y) {
+            for (size_t z = y + 1; z < dimension + 1; ++z) {
+                size_t sum = basis[0] ^ basis[y] ^ basis[z];
+                size_t value = a2->elements[basis[0]] ^ a2->elements[basis[y]] ^ a2->elements[basis[z]];
+                if (a2->elements[sum] != value) {
+                    return false;
                 }
-                if (!wat) {
+                if (!inDomain(value, domains, sum)) {
                     return false;
                 }
             }

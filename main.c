@@ -5,7 +5,7 @@ size_t *createBasis(size_t dimension);
 
 void addConstant(TruthTable *tt, size_t c);
 
-int main(int argc, char *argv[]) {
+int main() {
     char *filename = "resources/q_6_1.tt";
     size_t dimension;
     size_t *basis;
@@ -24,34 +24,37 @@ int main(int argc, char *argv[]) {
         TruthTable *gPrime = initTruthTable(dimension);
         memcpy(gPrime->elements, functionG->elements, sizeof(size_t) * 1L << dimension);
         addConstant(gPrime, c);
+        printf("G':\n");
+        printTruthTable(gPrime);
         Partition *partitionG = partitionTt(gPrime);
         BucketsMap *bucketsMap = mapBuckets(partitionF, partitionG);
-        destroyTruthTable(gPrime);
+        printf("num of maps: %zu\n", bucketsMap->numOfMappings);
 
         for (size_t map = 0; map < bucketsMap->numOfMappings; ++map) {
             // Calculate outer permutation
             TtNode *a1 = outerPermutation(partitionF, partitionG, dimension, basis, bucketsMap->domains[map]);
             size_t numPermutations = countTtNodes(a1);
-            bool foundSolution = false;
 
             for (size_t i = 0; i < numPermutations; ++i) {
                 TruthTable *a1Prime = getTtNode(a1, i);
+//                printTruthTable(a1Prime);
                 TruthTable *a1Inverse = inverse(a1Prime);
-                TruthTable *gDPrime = compose(a1Inverse, functionG);
+                TruthTable *gDoublePrime = compose(a1Inverse, gPrime);
                 TruthTable *aPrime;
                 TruthTable *a2 = initTruthTable(dimension);
 
-                if (innerPermutation(functionF, gDPrime, basis, a2, aPrime)) {
+                if (innerPermutation(functionF, gDoublePrime, basis, a2, aPrime)) {
                     printf("Hello!\n");
                     exit(0);
                 }
 
                 destroyTruthTable(a1Inverse);
-                destroyTruthTable(gDPrime);
+                destroyTruthTable(gDoublePrime);
                 destroyTruthTable(a2);
             }
             destroyTtNode(a1);
         }
+        destroyTruthTable(gPrime);
         destroyBucketsMap(bucketsMap);
         destroyPartition(partitionG);
     }
@@ -74,8 +77,6 @@ size_t *createBasis(size_t dimension) {
     size_t *basis = malloc(sizeof(size_t) * (dimension));
     for (size_t i = 0; i < dimension; ++i) {
         basis[i] = 1L << i;
-        printf("%zu ", basis[i]);
     }
-    printf("\n");
     return basis;
 }
