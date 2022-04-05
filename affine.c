@@ -353,3 +353,80 @@ TruthTable *inverse(TruthTable *truthTable) {
     }
     return result;
 }
+
+bool innerPermutation(TruthTable *f, TruthTable *g, const size_t *basis, TruthTable *a2, TruthTable *aPrime) {
+    size_t dimension = f->dimension;
+    Node **restrictedDomains = malloc(sizeof(Node **) * 1L << dimension);
+
+    createDomains(f, g, basis, dimension, restrictedDomains);
+    return isAffine(a2, basis, restrictedDomains);
+}
+
+bool dfs(Node **domains, size_t k, size_t *values, TruthTable *f, TruthTable *g, TruthTable *a2, TruthTable *aPrime,
+         const size_t *basis) {
+    size_t dimension = f->dimension;
+    if (k == dimension) {
+        reconstructTruthTable(values, a2);
+        aPrime = compose(f, a2);
+        add(aPrime, g);
+        if (isAffine(aPrime, basis, NULL)) {
+            destroyTruthTable(aPrime);
+            return true;
+        }
+
+        destroyTruthTable(aPrime);
+        return false;
+    }
+}
+
+void reconstructTruthTable(const size_t *basisValues, TruthTable *a2) {
+    size_t dimension = a2->dimension;
+    for (size_t coordinate = 0; coordinate < 1L << dimension; ++coordinate) {
+        size_t result = 0;
+        for (int i = 0; i < dimension; ++i) {
+            if (1L << i & coordinate) {
+                result ^= basisValues[i];
+            }
+        }
+        a2->elements[coordinate] = result;
+    }
+}
+
+void createDomains(const TruthTable *f, const TruthTable *g, const size_t *basis, size_t dimension, Node **restrictedDomains) {
+    for (size_t x = 0; x < 1L << dimension; ++x) {
+        size_t value = g->elements[x];
+        restrictedDomains[x] = initNode();
+        for (int y = 0; y < 1L << dimension; ++y) {
+            if (f->elements[y] == value) {
+                addNode(restrictedDomains[x], y);
+            }
+        }
+//        printNodes(restrictedDomains[x]);
+    }
+}
+
+bool isAffine(TruthTable *a2, const size_t *basis, Node **domains) {
+    size_t dimension = a2->dimension;
+    for (int x = 0; x < dimension + 1; ++x) {
+        for (int y = x + 1; y < dimension + 1; ++y) {
+            for (int z = y + 1; z < dimension + 1; ++z) {
+                bool wat = false;
+                size_t sum = basis[x] ^ basis[y] ^ basis[z];
+                size_t value = a2->elements[basis[x]] ^ a2->elements[basis[y]] ^ a2->elements[basis[z]];
+                Node *domain = domains[sum];
+                printNodes(domain);
+                while (domain != NULL) {
+                    if (domain->data == value) {
+                        wat = true;
+                        break;
+                    }
+                    domain = domain->next;
+                }
+                if (!wat) {
+                    return false;
+                }
+            }
+        }
+    }
+    return true;
+}

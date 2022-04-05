@@ -40,4 +40,16 @@ size_t *createClassRepresentation(Partition *partition, size_t dimension);
 
 TruthTable * inverse(TruthTable *truthTable);
 
+bool innerPermutation(TruthTable *f, TruthTable *g, const size_t *basis, TruthTable *a2, TruthTable *aPrime);
+
+bool dfs(Node **domains, size_t k, size_t *values, TruthTable *f, TruthTable *g, TruthTable *a2, TruthTable *aPrime,
+         const size_t *basis);
+
+void reconstructTruthTable(const size_t *basisValues, TruthTable *a2);
+
+void
+createDomains(const TruthTable *f, const TruthTable *g, const size_t *basis, size_t dimension, Node **restrictedDomains);
+
+bool isAffine(TruthTable *a2, const size_t *basis, Node **domains);
+
 #endif //AFFINE_AFFINE_H

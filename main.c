@@ -41,9 +41,10 @@ int main(int argc, char *argv[]) {
                 TruthTable *aPrime;
                 TruthTable *a2 = initTruthTable(dimension);
 
-//                if (innerPermutation(functionF, gDPrime, basis, a2, aPrime)) {
-//
-//                }
+                if (innerPermutation(functionF, gDPrime, basis, a2, aPrime)) {
+                    printf("Hello!\n");
+                    exit(0);
+                }
 
                 destroyTruthTable(a1Inverse);
                 destroyTruthTable(gDPrime);
