@@ -40,10 +40,9 @@ size_t *createClassRepresentation(Partition *partition, size_t dimension);
 
 TruthTable * inverse(TruthTable *truthTable);
 
-bool innerPermutation(TruthTable *f, TruthTable *g, const size_t *basis, TruthTable *a2, TruthTable *aPrime);
+bool innerPermutation(TruthTable *f, TruthTable *g, const size_t *basis, TruthTable *a2);
 
-bool dfs(Node **domains, size_t k, size_t *values, TruthTable *f, TruthTable *g, TruthTable *a2, TruthTable *aPrime,
-         const size_t *basis);
+bool dfs(Node **domains, size_t k, size_t *values, TruthTable *f, TruthTable *g, TruthTable *a2, const size_t *basis);
 
 void reconstructTruthTable(const size_t *basisValues, TruthTable *a2);
 

@@ -409,7 +409,7 @@ Node *computeDomain(const bool *map, TruthTable *tt) {
 }
 
 bool
-innerPermutation(TruthTable *f, TruthTable *g, const size_t *basis, TruthTable *a2, TruthTable *aPrime) {
+innerPermutation(TruthTable *f, TruthTable *g, const size_t *basis, TruthTable *a2) {
     size_t dimension = f->dimension;
     Node **restrictedDomains = malloc(sizeof(Node **) * (dimension + 1));
 
@@ -428,7 +428,7 @@ innerPermutation(TruthTable *f, TruthTable *g, const size_t *basis, TruthTable *
     }
 
     size_t *values = malloc(sizeof(size_t) * dimension);
-    bool result = dfs(restrictedDomains, 0, values, f, g, a2, aPrime, basis);
+    bool result = dfs(restrictedDomains, 0, values, f, g, a2, basis);
     free(values);
 
     for (size_t i = 0; i < dimension + 1; ++i) {
@@ -438,12 +438,11 @@ innerPermutation(TruthTable *f, TruthTable *g, const size_t *basis, TruthTable *
     return result;
 }
 
-bool dfs(Node **domains, size_t k, size_t *values, TruthTable *f, TruthTable *g, TruthTable *a2, TruthTable *aPrime,
-         const size_t *basis) {
+bool dfs(Node **domains, size_t k, size_t *values, TruthTable *f, TruthTable *g, TruthTable *a2, const size_t *basis) {
     size_t dimension = f->dimension;
     if (k == dimension) {
         reconstructTruthTable(values, a2);
-        aPrime = compose(f, a2);
+        TruthTable * aPrime = compose(f, a2);
 	/* If everything went smoothly, we should have aPrime == g */
 	_Bool could_it_be = true;
 	for(size_t x = 0; x < (1L << aPrime->dimension); ++x) {
@@ -452,6 +451,7 @@ bool dfs(Node **domains, size_t k, size_t *values, TruthTable *f, TruthTable *g,
 	    break;
 	  }
 	}
+	destroyTruthTable(aPrime);
 	if(!could_it_be) {
 	  printf("Nooooooo\n");
 	  printf("First value is %lu\n", a2->elements[0]);
@@ -467,7 +467,7 @@ bool dfs(Node **domains, size_t k, size_t *values, TruthTable *f, TruthTable *g,
     Node *current = domains[k]->next;
     while (current != NULL) {
         values[k] = current->data;
-        bool affine = dfs(domains, k + 1, values, f, g, a2, aPrime, basis);
+        bool affine = dfs(domains, k + 1, values, f, g, a2, basis);
         if (affine) return true;
         current = current->next;
     }

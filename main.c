@@ -21,6 +21,8 @@ int main() {
     /* Cheating */
     // Need to test for all possible constants, 0..2^n - 1.
     for (int c = 0; c < 1L << dimension; ++c) {
+	_Bool sol = false; /* for breaking out of nested loops */
+
         TruthTable *gPrime = initTruthTable(dimension);
         memcpy(gPrime->elements, functionG->elements, sizeof(size_t) * 1L << dimension);
         addConstant(gPrime, c);
@@ -43,11 +45,14 @@ int main() {
                 TruthTable *aPrime;
                 TruthTable *a2 = initTruthTable(dimension);
 
-                if (innerPermutation(functionF, gDoublePrime, basis, a2, aPrime)) {
-		    destroyTruthTable(a2);
-		    destroyTruthTable(aPrime);
+                if (innerPermutation(functionF, gDoublePrime, basis, a2)) {
                     printf("Hello!\n");
-                    exit(0);
+		    sol = true;
+		    /* TODO: Kind of ugly */
+		    destroyTruthTable(a1Inverse);
+		    destroyTruthTable(gDoublePrime);
+		    destroyTruthTable(a2);
+		    break;
                 }
 
                 destroyTruthTable(a1Inverse);
@@ -55,11 +60,21 @@ int main() {
                 destroyTruthTable(a2);
             }
 
+
             destroyTtNode(a1);
+
+	    if (sol) {
+	      break;
+	    }
         }
         destroyTruthTable(gPrime);
         destroyBucketsMap(bucketsMap);
         destroyPartition(partitionG);
+
+	if(sol) {
+	  break;
+	}
+
     }
 
     destroyTruthTable(functionF);
