@@ -428,11 +428,50 @@ innerPermutation(TruthTable *f, TruthTable *g, const size_t *basis, TruthTable *
     }
 
     size_t *values = malloc(sizeof(size_t) * dimension);
-    bool result = dfs(restrictedDomains, 0, values, f, g, a2, basis);
+
+    size_t constant_term = g->elements[0];
+    /* Guess of constant term of a2 */
+
+    TruthTable * newg = initTruthTable(dimension);
+    bool result;
+    for(size_t c2 = 0; c2 < (1L << dimension); ++c2) {
+      /* Only consider preimages of g(0) */
+      if (f->elements[c2] != constant_term) {
+	continue;
+      }
+
+      for(size_t x = 0; x < (1L << dimension); ++x) {
+	newg->elements[x^c2] = g->elements[x];
+      }
+
+      result = dfs(restrictedDomains, 0, values, f, newg, a2, basis);
+      if(result) {
+	/* If everything went smoothly, we should have aPrime == g */
+	_Bool could_it_be = true;
+	TruthTable * aPrime = compose(f, a2);
+	for(size_t x = 0; x < (1L << aPrime->dimension); ++x) {
+	  if ((aPrime->elements[x]) != newg->elements[x]) {
+	    printf("Fault at x = %lu, aPrime[%lu] = %lu, g[%lu] = %lu\n", x, x, aPrime->elements[x], x, newg->elements[x]);
+	    could_it_be = false;
+	    break;
+	  }
+	}
+	if(!could_it_be) {
+	  printf("Nooooooo\n");
+	  printf("First value is %lu\n", a2->elements[0]);
+	  printf("Second value is %lu\n", a2->elements[1]);
+	  printf("All values on the basis:\n");
+	  for(size_t i = 0; i < dimension; ++i) {
+	    printf("%lu -> %lu\n", i, values[i]);
+	  }
+	}
+	break;
+      }
+    }
     free(values);
 
     for (size_t i = 0; i < dimension + 1; ++i) {
-        destroyNodes(restrictedDomains[i]);
+	destroyNodes(restrictedDomains[i]);
     }
     free(restrictedDomains);
     return result;
@@ -443,24 +482,7 @@ bool dfs(Node **domains, size_t k, size_t *values, TruthTable *f, TruthTable *g,
     if (k == dimension) {
         reconstructTruthTable(values, a2);
         TruthTable * aPrime = compose(f, a2);
-	/* If everything went smoothly, we should have aPrime == g */
-	_Bool could_it_be = true;
-	for(size_t x = 0; x < (1L << aPrime->dimension); ++x) {
-	  if (aPrime->elements[x] != g->elements[x]) {
-	    could_it_be = false;
-	    break;
-	  }
-	}
 	destroyTruthTable(aPrime);
-	if(!could_it_be) {
-	  printf("Nooooooo\n");
-	  printf("First value is %lu\n", a2->elements[0]);
-	  printf("Second value is %lu\n", a2->elements[1]);
-	  printf("All values on the basis:\n");
-	  for(size_t i = 0; i < dimension; ++i) {
-	    printf("%lu -> %lu\n", i, values[i]);
-	  }
-	}
 
         return true;
     }
