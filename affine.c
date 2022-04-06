@@ -379,6 +379,10 @@ Node *computeDomain(const bool *map, TruthTable *tt) {
     for (size_t t = 0; t < 1L << dimension; ++t) {
         if (map[t]) {
             bool *tempSet = malloc(sizeof(bool) * 1L << dimension);
+	    /* TODO: To be eco-friendly, replace this with calloc */
+	    for (size_t i = 0; i < 1L << dimension; ++i) {
+		tempSet[i] = false;
+	    }
             for (size_t x = 0; x < 1L << dimension; ++x) {
                 for (size_t y = 0; y < 1L << dimension; ++y) {
                     if (t == (tt->elements[x] ^ tt->elements[y] ^ tt->elements[x ^ y])) {
@@ -440,14 +444,27 @@ bool dfs(Node **domains, size_t k, size_t *values, TruthTable *f, TruthTable *g,
     if (k == dimension) {
         reconstructTruthTable(values, a2);
         aPrime = compose(f, a2);
-        add(aPrime, g);
-        if (isAffine(aPrime, basis, domains)) {
-            return true;
-        }
-        destroyTruthTable(aPrime);
-        return false;
+	/* If everything went smoothly, we should have aPrime == g */
+	_Bool could_it_be = true;
+	for(size_t x = 0; x < (1L << aPrime->dimension); ++x) {
+	  if (aPrime->elements[x] != g->elements[x]) {
+	    could_it_be = false;
+	    break;
+	  }
+	}
+	if(!could_it_be) {
+	  printf("Nooooooo\n");
+	  printf("First value is %lu\n", a2->elements[0]);
+	  printf("Second value is %lu\n", a2->elements[1]);
+	  printf("All values on the basis:\n");
+	  for(size_t i = 0; i < dimension; ++i) {
+	    printf("%lu -> %lu\n", i, values[i]);
+	  }
+	}
+
+        return true;
     }
-    Node *current = domains[k];
+    Node *current = domains[k]->next;
     while (current != NULL) {
         values[k] = current->data;
         bool affine = dfs(domains, k + 1, values, f, g, a2, aPrime, basis);
