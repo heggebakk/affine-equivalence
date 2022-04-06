@@ -431,7 +431,7 @@ innerPermutation(TruthTable *f, TruthTable *g, const size_t *basis, TruthTable *
     bool result = dfs(restrictedDomains, 0, values, f, g, a2, aPrime, basis);
     free(values);
 
-    for (size_t i = 0; i < dimension; ++i) {
+    for (size_t i = 0; i < dimension + 1; ++i) {
         destroyNodes(restrictedDomains[i]);
     }
     free(restrictedDomains);
