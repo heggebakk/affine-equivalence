@@ -417,7 +417,7 @@ innerPermutation(TruthTable *f, TruthTable *g, const size_t *basis, TruthTable *
     restrictedDomains[0] = computeDomain(map, f);
     free(map);
 
-    for (size_t i = 0; i < dimension + 1; ++i) {
+    for (size_t i = 0; i < dimension; ++i) {
         bool *map = computeSetOfTs(g, basis[i]);
         restrictedDomains[i + 1] = computeDomain(map, f);
         free(map);
