@@ -44,6 +44,8 @@ int main() {
                 TruthTable *a2 = initTruthTable(dimension);
 
                 if (innerPermutation(functionF, gDoublePrime, basis, a2, aPrime)) {
+		    destroyTruthTable(a2);
+		    destroyTruthTable(aPrime);
                     printf("Hello!\n");
                     exit(0);
                 }
@@ -52,6 +54,7 @@ int main() {
                 destroyTruthTable(gDoublePrime);
                 destroyTruthTable(a2);
             }
+
             destroyTtNode(a1);
         }
         destroyTruthTable(gPrime);
