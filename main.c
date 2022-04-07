@@ -21,8 +21,7 @@ int main() {
     /* Cheating */
     // Need to test for all possible constants, 0..2^n - 1.
     for (int c = 0; c < 1L << dimension; ++c) {
-	_Bool foundSolution = false; /* for breaking out of nested loops */
-
+        _Bool foundSolution = false; /* for breaking out of nested loops */
         TruthTable *gPrime = initTruthTable(dimension);
         memcpy(gPrime->elements, functionG->elements, sizeof(size_t) * 1L << dimension);
         addConstant(gPrime, c);

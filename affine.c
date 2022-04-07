@@ -480,16 +480,16 @@ bool dfs(Node **domains, size_t k, size_t *values, TruthTable *f, TruthTable *g,
     size_t dimension = f->dimension;
     if (k == dimension) {
         reconstructTruthTable(values, a2);
-        TruthTable * aPrime = compose(f, a2);
-	destroyTruthTable(aPrime);
-
+        TruthTable *aPrime = compose(f, a2);
+        destroyTruthTable(aPrime);
         return true;
     }
+
     Node *current = domains[k]->next;
     while (current != NULL) {
         values[k] = current->data;
-        bool affine = dfs(domains, k + 1, values, f, g, a2, basis);
-        if (affine) return true;
+        bool isAffine = dfs(domains, k + 1, values, f, g, a2, basis);
+        if (isAffine) return true;
         current = current->next;
     }
     return false;
