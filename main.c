@@ -21,7 +21,7 @@ int main() {
     /* Cheating */
     // Need to test for all possible constants, 0..2^n - 1.
     for (int c = 0; c < 1L << dimension; ++c) {
-	_Bool sol = false; /* for breaking out of nested loops */
+	_Bool foundSolution = false; /* for breaking out of nested loops */
 
         TruthTable *gPrime = initTruthTable(dimension);
         memcpy(gPrime->elements, functionG->elements, sizeof(size_t) * 1L << dimension);
@@ -39,48 +39,36 @@ int main() {
 
             for (size_t i = 0; i < numPermutations; ++i) {
                 TruthTable *a1Prime = getTtNode(a1, i);
-//                printTruthTable(a1Prime);
                 TruthTable *a1Inverse = inverse(a1Prime);
                 TruthTable *gDoublePrime = compose(a1Inverse, gPrime);
-                TruthTable *aPrime;
                 TruthTable *a2 = initTruthTable(dimension);
 
                 if (innerPermutation(functionF, gDoublePrime, basis, a2)) {
                     printf("Hello!\n");
-		    sol = true;
-		    /* TODO: Kind of ugly */
-		    destroyTruthTable(a1Inverse);
-		    destroyTruthTable(gDoublePrime);
-		    destroyTruthTable(a2);
-		    break;
+                    foundSolution = true;
                 }
-
                 destroyTruthTable(a1Inverse);
                 destroyTruthTable(gDoublePrime);
                 destroyTruthTable(a2);
+
+                if (foundSolution) break;
             }
-
-
             destroyTtNode(a1);
 
-	    if (sol) {
-	      break;
-	    }
+            if (foundSolution) break;
         }
         destroyTruthTable(gPrime);
         destroyBucketsMap(bucketsMap);
         destroyPartition(partitionG);
 
-	if(sol) {
-	  break;
-	}
-
+        if (foundSolution) break;
     }
 
     destroyTruthTable(functionF);
     destroyTruthTable(functionG);
     destroyPartition(partitionF);
     free(basis);
+
     return 0;
 }
 

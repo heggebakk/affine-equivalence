@@ -378,11 +378,7 @@ Node *computeDomain(const bool *map, TruthTable *tt) {
     }
     for (size_t t = 0; t < 1L << dimension; ++t) {
         if (map[t]) {
-            bool *tempSet = malloc(sizeof(bool) * 1L << dimension);
-	    /* TODO: To be eco-friendly, replace this with calloc */
-	    for (size_t i = 0; i < 1L << dimension; ++i) {
-		tempSet[i] = false;
-	    }
+            bool *tempSet = calloc(sizeof(bool), 1L << dimension);
             for (size_t x = 0; x < 1L << dimension; ++x) {
                 for (size_t y = 0; y < 1L << dimension; ++y) {
                     if (t == (tt->elements[x] ^ tt->elements[y] ^ tt->elements[x ^ y])) {
@@ -408,10 +404,10 @@ Node *computeDomain(const bool *map, TruthTable *tt) {
     return domainResult;
 }
 
-bool
-innerPermutation(TruthTable *f, TruthTable *g, const size_t *basis, TruthTable *a2) {
+bool innerPermutation(TruthTable *f, TruthTable *g, const size_t *basis, TruthTable *a2) {
     size_t dimension = f->dimension;
     Node **restrictedDomains = malloc(sizeof(Node **) * (dimension + 1));
+    bool result;
 
     bool *map = computeSetOfTs(g, 0);
     restrictedDomains[0] = computeDomain(map, f);
@@ -432,46 +428,49 @@ innerPermutation(TruthTable *f, TruthTable *g, const size_t *basis, TruthTable *
     size_t constant_term = g->elements[0];
     /* Guess of constant term of a2 */
 
-    TruthTable * newg = initTruthTable(dimension);
-    bool result;
-    for(size_t c2 = 0; c2 < (1L << dimension); ++c2) {
-      /* Only consider preimages of g(0) */
-      if (f->elements[c2] != constant_term) {
-	continue;
-      }
 
-      for(size_t x = 0; x < (1L << dimension); ++x) {
-	newg->elements[x^c2] = g->elements[x];
-      }
+    for (size_t c2 = 0; c2 < 1L << dimension; ++c2) {
+        /* Only consider preimages of g(0) */
+        if (f->elements[c2] != constant_term) {
+            continue;
+        }
 
-      result = dfs(restrictedDomains, 0, values, f, newg, a2, basis);
-      if(result) {
-	/* If everything went smoothly, we should have aPrime == g */
-	_Bool could_it_be = true;
-	TruthTable * aPrime = compose(f, a2);
-	for(size_t x = 0; x < (1L << aPrime->dimension); ++x) {
-	  if ((aPrime->elements[x]) != newg->elements[x]) {
-	    printf("Fault at x = %lu, aPrime[%lu] = %lu, g[%lu] = %lu\n", x, x, aPrime->elements[x], x, newg->elements[x]);
-	    could_it_be = false;
-	    break;
-	  }
-	}
-	if(!could_it_be) {
-	  printf("Nooooooo\n");
-	  printf("First value is %lu\n", a2->elements[0]);
-	  printf("Second value is %lu\n", a2->elements[1]);
-	  printf("All values on the basis:\n");
-	  for(size_t i = 0; i < dimension; ++i) {
-	    printf("%lu -> %lu\n", i, values[i]);
-	  }
-	}
-	break;
-      }
+        TruthTable *newG = initTruthTable(dimension);
+        for (size_t x = 0; x < 1L << dimension; ++x) {
+            newG->elements[x ^ c2] = g->elements[x];
+        }
+
+        result = dfs(restrictedDomains, 0, values, f, newG, a2, basis);
+        if (result) {
+            /* If everything went smoothly, we should have aPrime == g */
+            _Bool could_it_be = true;
+            TruthTable *aPrime = compose(f, a2);
+            for (size_t x = 0; x < (1L << aPrime->dimension); ++x) {
+                if ((aPrime->elements[x]) != newG->elements[x]) {
+                    printf("Fault at x = %lu, aPrime[%lu] = %lu, g[%lu] = %lu\n", x, x, aPrime->elements[x], x,
+                           newG->elements[x]);
+                    could_it_be = false;
+                    break;
+                }
+            }
+            if (!could_it_be) {
+                printf("Nooooooo\n");
+                printf("First value is %lu\n", a2->elements[0]);
+                printf("Second value is %lu\n", a2->elements[1]);
+                printf("All values on the basis:\n");
+                for (size_t i = 0; i < dimension; ++i) {
+                    printf("%lu -> %lu\n", i, values[i]);
+                }
+            }
+            destroyTruthTable(aPrime);
+            destroyTruthTable(newG);
+            break;
+        }
     }
     free(values);
 
     for (size_t i = 0; i < dimension + 1; ++i) {
-	destroyNodes(restrictedDomains[i]);
+        destroyNodes(restrictedDomains[i]);
     }
     free(restrictedDomains);
     return result;
