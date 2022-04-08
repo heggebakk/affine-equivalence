@@ -480,6 +480,7 @@ bool innerPermutation(TruthTable *f, TruthTable *g, const size_t *basis, TruthTa
 
 bool dfs(Node **domains, size_t k, size_t *values, TruthTable *f, TruthTable *g, TruthTable *a2, const size_t *basis) {
     size_t dimension = f->dimension;
+    printf("Depth %lu\n", k);
     if (k == dimension) {
         reconstructTruthTable(values, a2);
         TruthTable *aPrime = compose(f, a2);
@@ -497,7 +498,7 @@ bool dfs(Node **domains, size_t k, size_t *values, TruthTable *f, TruthTable *g,
 	  /* We are using the standard basis, and therefore the linear combination is the same
 	   * as the vector describing it
 	   */
-	  size_t new_input = linear_combination^(1L<<(k+1));
+	  size_t new_input = linear_combination^(1L<<k);
 	  size_t new_value = a2->elements[linear_combination] ^ current->data;
 	  a2->elements[new_input] = new_value;
 	  /* Check for a violation of f * a2 = g */
