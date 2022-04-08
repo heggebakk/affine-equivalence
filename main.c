@@ -6,12 +6,12 @@ size_t *createBasis(size_t dimension);
 void addConstant(TruthTable *tt, size_t c);
 
 int main() {
-    char *filename = "resources/q_6_1.tt";
+    char *filename = "resources/dim6/gf/orthoderivative_GF.tt";
     size_t dimension;
     size_t *basis;
     TruthTable *functionF = parseFile(filename);
 //    TruthTable *functionG = createTruthTable(functionF);
-    TruthTable *functionG = parseFile("resources/g.tt");
+    TruthTable *functionG = parseFile("resources/dim6/gf/orthoderivative_g.tt");
     printTruthTable(functionF);
     printTruthTable(functionG);
     Partition *partitionF = partitionTt(functionF);
