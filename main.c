@@ -1,5 +1,6 @@
 #include "structures.h"
 #include "affine.h"
+#include "orthoderivative.h"
 
 size_t *createBasis(size_t dimension);
 
@@ -10,10 +11,13 @@ int main() {
     char *filename = "resources/dim6/gf/q_6_1.tt";
     size_t dimension;
     size_t *basis;
-    TruthTable *functionF = parseFile(filename);
+//    TruthTable *functionF = parseFile(filename);
+    TruthTable *functionF= orthoderivative(parseFile(filename));
 //    TruthTable *functionG = createTruthTable(functionF);
 //    TruthTable *functionG = parseFile("resources/dim6/gf/orthoderivative_g.tt");
-    TruthTable *functionG = parseFile("resources/dim6/gf/g.tt");
+//    TruthTable *functionG = parseFile("resources/dim6/gf/g.tt");
+    TruthTable *functionG = orthoderivative(parseFile("resources/dim6/gf/g.tt"));
+//    TruthTable *functionG = orthoderivative(createTruthTable(functionF));
     printTruthTable(functionF);
     printTruthTable(functionG);
     Partition *partitionF = partitionTt(functionF);

@@ -144,13 +144,13 @@ TruthTable *compose(TruthTable *f, TruthTable *g) {
 
 TruthTable *randomLinearFunction(size_t dimension) {
     size_t entries = 1L << dimension;
-    size_t basisImages[dimension];
     size_t listGenerated[entries];
     listGenerated[0] = 0;
+    size_t basisImages[dimension];
     for (size_t i = 0; i < dimension; ++i) {
         size_t j = rand() % entries;
         basisImages[i] = j;
-        for (size_t k = 0; k < 1L << i; ++k) {
+        for (int k = 0; k < 1L << i; ++k) {
             listGenerated[(1L << i) + k] = listGenerated[k] ^ j;
         }
     }
@@ -161,52 +161,44 @@ TruthTable *randomLinearFunction(size_t dimension) {
 
 TruthTable *randomLinearPermutation(size_t dimension) {
     size_t entries = 1L << dimension;
+    bool generated[entries];
     size_t listGenerated[entries];
-    size_t basisImages[dimension];
-    bool *generated = malloc(sizeof(bool) * entries);
-    memset(generated, 0, sizeof (bool) * entries);
     generated[0] = true;
+    for (size_t i = 1; i < entries; ++i) {
+        generated[i] = false;
+    }
     listGenerated[0] = 0;
 
-    for (size_t i = 0; i < dimension; ++i) {
+    size_t basisImages[dimension];
+    for (int i = 0; i < dimension; ++i) {
         size_t j = rand() % entries;
         while (generated[j]) {
             j = (j + 1) % entries;
         }
         basisImages[i] = j;
-        for (size_t k = 0; k < 1L << i; ++k) {
+        for (int k = 0; k < 1L << i; ++k) {
             listGenerated[1L << i ^ k] = listGenerated[k] ^ j;
             generated[listGenerated[k] ^ j] = true;
         }
     }
-
-    size_t c = rand() % entries;
-    for (size_t i = 0; i < entries; ++i) {
-        listGenerated[i] += (listGenerated[i] + c) % entries;
-    }
     TruthTable *result = initTruthTable(dimension);
     memcpy(result->elements, listGenerated, sizeof(size_t) * entries);
-    free(generated);
     return result;
 }
 
-TruthTable *createTruthTable(TruthTable *tt) {
-    size_t dimension = tt->dimension;
-    TruthTable *a1 = randomLinearPermutation(dimension);
-    TruthTable *a2 = randomLinearPermutation(dimension);
-    size_t c = rand() % 1L << dimension;
-    for (size_t i = 0; i < 1L << dimension; ++i) {
-        a1->elements[i] = (a1->elements[i] + c) % (1L << dimension);
-        a2->elements[i] = (a2->elements[i] + c) % (1L << dimension);
-    }
-    printTruthTable(a1);
-    printTruthTable(a2);
+TruthTable *createTruthTable(TruthTable *f) {
+    size_t dimension = f->dimension;
+    TruthTable *l1 = randomLinearPermutation(dimension);
+    TruthTable *l2 = randomLinearPermutation(dimension);
+    TruthTable *l = randomLinearFunction(dimension);
 
-    TruthTable *temp = compose(tt, a2);
-    TruthTable *g = compose(a1, temp);
+    TruthTable *temp = compose(f, l2);
+    TruthTable *g = compose(l1, temp);
+    add(g, l);
 
-    destroyTruthTable(a1);
-    destroyTruthTable(a2);
+    destroyTruthTable(l1);
+    destroyTruthTable(l2);
+    destroyTruthTable(l);
     destroyTruthTable(temp);
     return g;
 }

@@ -39,7 +39,7 @@ TruthTable * compose(TruthTable *f, TruthTable *g);
 
 void add(TruthTable *dest, TruthTable *src);
 
-TruthTable *createTruthTable(TruthTable *tt);
+TruthTable *createTruthTable(TruthTable *f);
 
 TtNode * outerPermutation(Partition *f, Partition *g, size_t dimension, size_t *basis, size_t *domain);
 
