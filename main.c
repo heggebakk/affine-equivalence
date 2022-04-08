@@ -18,18 +18,17 @@ int main() {
     dimension = functionF->dimension;
     basis = createBasis(dimension);
 
-    /* Cheating */
     // Need to test for all possible constants, 0..2^n - 1.
     for (int c = 0; c < 1L << dimension; ++c) {
         _Bool foundSolution = false; /* for breaking out of nested loops */
         TruthTable *gPrime = initTruthTable(dimension);
         memcpy(gPrime->elements, functionG->elements, sizeof(size_t) * 1L << dimension);
         addConstant(gPrime, c);
-        printf("G':\n");
-        printTruthTable(gPrime);
+//        printf("G':\n");
+//        printTruthTable(gPrime);
         Partition *partitionG = partitionTt(gPrime);
         BucketsMap *bucketsMap = mapBuckets(partitionF, partitionG);
-        printf("num of maps: %zu\n", bucketsMap->numOfMappings);
+//        printf("num of maps: %zu\n", bucketsMap->numOfMappings);
 
         for (size_t map = 0; map < bucketsMap->numOfMappings; ++map) {
             // Calculate outer permutation
@@ -41,10 +40,12 @@ int main() {
                 TruthTable *a1Inverse = inverse(a1Prime);
                 TruthTable *gDoublePrime = compose(a1Inverse, gPrime);
                 TruthTable *a2 = initTruthTable(dimension);
-		a2->elements[0] = 0;
+                a2->elements[0] = 0;
 
                 if (innerPermutation(functionF, gDoublePrime, basis, a2)) {
                     printf("Hello!\n");
+                    printf("a2:\n");
+                    printTruthTable(a2);
                     foundSolution = true;
                 }
                 destroyTruthTable(a1Inverse);

@@ -409,25 +409,25 @@ bool innerPermutation(TruthTable *f, TruthTable *g, const size_t *basis, TruthTa
     Node **restrictedDomains = malloc(sizeof(Node **) * (dimension + 1));
     bool result;
 
-    bool *map = computeSetOfTs(g, 0);
-    restrictedDomains[0] = computeDomain(map, f);
-    free(map);
-
+//    bool *map = computeSetOfTs(g, 0);
+//    restrictedDomains[0] = computeDomain(map, f);
+//    free(map);
+//
     for (size_t i = 0; i < dimension; ++i) {
         bool *map = computeSetOfTs(g, basis[i]);
-        restrictedDomains[i + 1] = computeDomain(map, f);
+        restrictedDomains[i] = computeDomain(map, f);
         free(map);
     }
     printf("Restricted domains in inner permutation call:\n");
-    for (int i = 0; i < dimension + 1; ++i) {
+    for (int i = 0; i < dimension; ++i) {
         printNodes(restrictedDomains[i]);
     }
+    printf("\n");
 
     size_t *values = malloc(sizeof(size_t) * dimension);
 
     size_t constant_term = g->elements[0];
     /* Guess of constant term of a2 */
-
 
     for (size_t c2 = 0; c2 < 1L << dimension; ++c2) {
         /* Only consider preimages of g(0) */
@@ -492,28 +492,27 @@ bool dfs(Node **domains, size_t k, size_t *values, TruthTable *f, TruthTable *g,
     while (current != NULL) {
         /* Guess that basis element #k maps to current->data */
         values[k] = current->data;
-	/* Fill up part of the truth table (on the span of the guessed elements) */
-	_Bool problem = false;
-	for(size_t linear_combination = 0; linear_combination < (1L << k); ++linear_combination) {
-	  /* We are using the standard basis, and therefore the linear combination is the same
-	   * as the vector describing it
-	   */
-	  size_t new_input = linear_combination^(1L<<k);
-	  size_t new_value = a2->elements[linear_combination] ^ current->data;
-	  a2->elements[new_input] = new_value;
-	  /* Check for a violation of f * a2 = g */
-	  if( f->elements[new_value] != g->elements[new_input]) {
-	    /* Something is wrong, backtrack */
-	    problem = true;
-	    break;
-	  }
-	}
-	if(!problem) {
-	  bool isAffine = dfs(domains, k + 1, values, f, g, a2, basis);
-	  if (isAffine) return true;
-	}
-
-	current = current->next;
+        /* Fill up part of the truth table (on the span of the guessed elements) */
+        _Bool problem = false;
+        for (size_t linear_combination = 0; linear_combination < (1L << k); ++linear_combination) {
+            /* We are using the standard basis, and therefore the linear combination is the same
+             * as the vector describing it
+             */
+            size_t new_input = linear_combination ^ (1L << k);
+            size_t new_value = a2->elements[linear_combination] ^ current->data;
+            a2->elements[new_input] = new_value;
+            /* Check for a violation of f * a2 = g */
+            if (f->elements[new_value] != g->elements[new_input]) {
+                /* Something is wrong, backtrack */
+                problem = true;
+                break;
+            }
+        }
+        if (!problem) {
+            bool isAffine = dfs(domains, k + 1, values, f, g, a2, basis);
+            if (isAffine) return true;
+        }
+        current = current->next;
     }
     return false;
 }
