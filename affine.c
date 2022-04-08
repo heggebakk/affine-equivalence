@@ -455,11 +455,13 @@ bool innerPermutation(TruthTable *f, TruthTable *g, const size_t *basis, TruthTa
                     printf("%lu -> %lu\n", i, values[i]);
                 }
             }
+            printf("Constant c2: %zu\n", c2);
+
             destroyTruthTable(aPrime);
             destroyTruthTable(newG);
             break;
         }
-	destroyTruthTable(newG);
+        destroyTruthTable(newG);
     }
 
     free(values);

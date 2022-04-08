@@ -6,12 +6,14 @@ size_t *createBasis(size_t dimension);
 void addConstant(TruthTable *tt, size_t c);
 
 int main() {
-    char *filename = "resources/dim6/gf/orthoderivative_GF.tt";
+//    char *filename = "resources/dim6/gf/orthoderivative_GF.tt";
+    char *filename = "resources/dim6/gf/q_6_1.tt";
     size_t dimension;
     size_t *basis;
     TruthTable *functionF = parseFile(filename);
 //    TruthTable *functionG = createTruthTable(functionF);
-    TruthTable *functionG = parseFile("resources/dim6/gf/orthoderivative_g.tt");
+//    TruthTable *functionG = parseFile("resources/dim6/gf/orthoderivative_g.tt");
+    TruthTable *functionG = parseFile("resources/dim6/gf/g.tt");
     printTruthTable(functionF);
     printTruthTable(functionG);
     Partition *partitionF = partitionTt(functionF);
@@ -19,18 +21,23 @@ int main() {
     basis = createBasis(dimension);
 
     // Need to test for all possible constants, 0..2^n - 1.
-    for (int c = 0; c < 1L << dimension; ++c) {
+    for (size_t c1 = 0; c1 < 1L << dimension; ++c1) {
         _Bool foundSolution = false; /* for breaking out of nested loops */
         TruthTable *gPrime = initTruthTable(dimension);
         memcpy(gPrime->elements, functionG->elements, sizeof(size_t) * 1L << dimension);
-        addConstant(gPrime, c);
+        addConstant(gPrime, c1); // Add the constant c1 to g: g' = g + c1
         Partition *partitionG = partitionTt(gPrime);
         BucketsMap *bucketsMap = mapBuckets(partitionF, partitionG);
+        printf("Partition F:\n");
+        printPartition(partitionF);
+        printf("Partition G:\n");
+        printPartition(partitionG);
 
         for (size_t map = 0; map < bucketsMap->numOfMappings; ++map) {
             // Calculate outer permutation
             TtNode *a1 = outerPermutation(partitionF, partitionG, dimension, basis, bucketsMap->domains[map]);
             size_t numPermutations = countTtNodes(a1);
+            printf("Number of permutations: %zu\n", numPermutations);
 
             for (size_t i = 0; i < numPermutations; ++i) {
                 TruthTable *a1Prime = getTtNode(a1, i);
@@ -40,6 +47,7 @@ int main() {
                 a2->elements[0] = 0;
 
                 if (innerPermutation(functionF, gDoublePrime, basis, a2)) {
+                    printf("Constant c1: %zu\n", c1);
                     printf("affine function:\n");
                     printTruthTable(a2);
                     foundSolution = true;
