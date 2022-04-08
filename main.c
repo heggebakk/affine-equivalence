@@ -41,6 +41,7 @@ int main() {
                 TruthTable *a1Inverse = inverse(a1Prime);
                 TruthTable *gDoublePrime = compose(a1Inverse, gPrime);
                 TruthTable *a2 = initTruthTable(dimension);
+		a2->elements[0] = 0;
 
                 if (innerPermutation(functionF, gDoublePrime, basis, a2)) {
                     printf("Hello!\n");

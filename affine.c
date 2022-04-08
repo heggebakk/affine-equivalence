@@ -463,10 +463,12 @@ bool innerPermutation(TruthTable *f, TruthTable *g, const size_t *basis, TruthTa
                 }
             }
             destroyTruthTable(aPrime);
-            destroyTruthTable(newG);
+	    destroyTruthTable(newG);
             break;
         }
+	destroyTruthTable(newG);
     }
+
     free(values);
 
     for (size_t i = 0; i < dimension + 1; ++i) {
@@ -487,10 +489,30 @@ bool dfs(Node **domains, size_t k, size_t *values, TruthTable *f, TruthTable *g,
 
     Node *current = domains[k]->next;
     while (current != NULL) {
+        /* Guess that basis element #k maps to current->data */
         values[k] = current->data;
-        bool isAffine = dfs(domains, k + 1, values, f, g, a2, basis);
-        if (isAffine) return true;
-        current = current->next;
+	/* Fill up part of the truth table (on the span of the guessed elements) */
+	_Bool problem = false;
+	for(size_t linear_combination = 0; linear_combination < (1L << k); ++linear_combination) {
+	  /* We are using the standard basis, and therefore the linear combination is the same
+	   * as the vector describing it
+	   */
+	  size_t new_input = linear_combination^(1L<<(k+1));
+	  size_t new_value = a2->elements[linear_combination] ^ current->data;
+	  a2->elements[new_input] = new_value;
+	  /* Check for a violation of f * a2 = g */
+	  if( f->elements[new_value] != g->elements[new_input]) {
+	    /* Something is wrong, backtrack */
+	    problem = true;
+	    break;
+	  }
+	}
+	if(!problem) {
+	  bool isAffine = dfs(domains, k + 1, values, f, g, a2, basis);
+	  if (isAffine) return true;
+	}
+
+	current = current->next;
     }
     return false;
 }
