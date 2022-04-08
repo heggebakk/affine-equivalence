@@ -5,14 +5,8 @@
 #include <memory.h>
 #include "affine.h"
 
-bool *computeSetOfTs(TruthTable *tt, const size_t x);
-
-Node *computeDomain(const bool *map, TruthTable *tt);
-
-bool inDomain(size_t value, Node **domain, size_t sum);
-
 TruthTable *parseFile(char *file) {
-    size_t dimension;
+    size_t n; // Dimension of the truth table
     FILE *fp = fopen(file, "r");
 
     // Check if file is found
@@ -22,17 +16,22 @@ TruthTable *parseFile(char *file) {
         exit(1);
     }
 
-    fscanf(fp, "%zu", &dimension);
-    TruthTable *tt = initTruthTable(dimension);
-    for (size_t i = 0; i < 1L << dimension; ++i) {
-        fscanf(fp, "%zu", &tt->elements[i]);
+    // If the file is found, we start parsing the file:
+    fscanf(fp, "%zu", &n); // Set the n of the truth table
+    TruthTable *f = initTruthTable(n);
+
+    // Set all the elements in the truth table. Should be 2^n elements.
+    for (size_t i = 0; i < 1L << n; ++i) {
+        fscanf(fp, "%zu", &f->elements[i]);
     }
+
     fclose(fp);
-    return tt;
+    return f;
 }
 
 BucketsMap *mapBuckets(struct Partition *f, struct Partition *g) {
     BucketsMap *bucketsMap = initBucketsMap();
+    // Check for contradictions between f and g
     if (f->numBuckets != g->numBuckets) {
         return bucketsMap;
     }
@@ -42,21 +41,20 @@ BucketsMap *mapBuckets(struct Partition *f, struct Partition *g) {
     for (size_t i = 0; i < f->numBuckets; ++i) domains[i] = initNode();
 
     for (size_t i = 0; i < f->numBuckets; ++i) {
-        bool sameSize = false;
+        bool sameSize = false; // For checking contradiction.
         for (size_t j = 0; j < g->numBuckets; ++j) {
             if (f->bucketSizes[i] == g->bucketSizes[j]) {
                 sameSize = true;
                 addNode(domains[i], j);
             }
         }
-        if (!sameSize) {
-            return NULL;
-        }
+        // If the partitions don't have the same sizes of the buckets, we have a contradiction
+        if (!sameSize) return NULL;
     }
 
-    size_t numOfMappings = 1;
-    bool *isCalculated = malloc(sizeof(bool) * f->numBuckets);
-    memset(isCalculated, 0, sizeof(bool) * f->numBuckets);
+    size_t numOfMappings = 1; // If no contradictions, we know that there is at least one valid mapping of f and g.
+
+    bool *isCalculated = calloc(sizeof(bool), f->numBuckets); // Boolean map for keeping track if we have used a bucket
     for (size_t i = 0; i < f->numBuckets; ++i) {
         Node *current = domains[i]->next;
         if (!isCalculated[current->data]) {
@@ -79,9 +77,8 @@ BucketsMap *mapBuckets(struct Partition *f, struct Partition *g) {
 }
 
 void createBucketsMap(BucketsMap *bucketsMap, Node **domains, Partition *partition) {
-    bool *chosen = malloc(sizeof (bool) * partition->numBuckets);
+    bool *chosen = calloc(sizeof (bool), partition->numBuckets);
     size_t *currentDomain = malloc(sizeof(size_t) * partition->numBuckets);
-    memset(chosen, 0, sizeof(bool) * partition->numBuckets);
     selectRecursive(0, chosen, domains, partition, bucketsMap, currentDomain);
 
     free(chosen);
@@ -114,10 +111,10 @@ void addDomain(BucketsMap *bucketsMap, size_t domainSize, size_t *domain) {
     bucketsMap->numOfMappings += 1;
 }
 
-void calculateMultiplicities(TruthTable *truthTable, size_t *multiplicities) {
-    size_t dimension = truthTable->dimension;
+void calculateMultiplicities(TruthTable *f, size_t *multiplicities) {
+    size_t dimension = f->dimension;
     for (size_t x = 0; x < 1L << dimension; ++x) {
-        size_t y = truthTable->elements[x];
+        size_t y = f->elements[x];
         multiplicities[y] += 1;
     }
 }
@@ -136,11 +133,11 @@ void add(TruthTable *dest, TruthTable *src) {
     }
 }
 
-TruthTable *compose(TruthTable *dest, TruthTable *src) {
-    size_t dimension = dest->dimension;
+TruthTable *compose(TruthTable *f, TruthTable *g) {
+    size_t dimension = f->dimension;
     TruthTable *result = initTruthTable(dimension);
     for (size_t x = 0; x < 1L << dimension; ++x) {
-        result->elements[x] = dest->elements[src->elements[x]];
+        result->elements[x] = f->elements[g->elements[x]];
     }
     return result;
 }
@@ -305,8 +302,6 @@ guessValuesOfL(size_t k, size_t *basis, size_t *images, Partition *f, Partition 
              // Check for contradiction as described above
              if (f->bucketSizes[fClass[x]] != g->bucketSizes[gClass[y]]) {
                  problem = true;
-		  //printf("Right now ck is %lu\n", ck);
-		  //printf("Contradiction is due to %lu -> %lu\n",x ,y );
                  break;
              }
 
@@ -350,28 +345,28 @@ size_t *createClassRepresentation(Partition *partition, size_t dimension) {
     return class;
 }
 
-TruthTable *inverse(TruthTable *truthTable) {
-    size_t dimension = truthTable->dimension;
-    TruthTable *result = initTruthTable(dimension);
+TruthTable *inverse(TruthTable *f) {
+    size_t dimension = f->dimension;
+    TruthTable *inverse = initTruthTable(dimension);
     for (size_t x = 0; x < 1L << dimension; ++x) {
-        size_t y = truthTable->elements[x];
-        result->elements[y] = x;
+        size_t y = f->elements[x];
+        inverse->elements[y] = x;
     }
-    return result;
+    return inverse;
 }
 
-bool *computeSetOfTs(TruthTable *tt, const size_t x) {
-    size_t dimension = tt->dimension;
+bool *computeSetOfTs(TruthTable *f, const size_t x) {
+    size_t dimension = f->dimension;
     bool *map = calloc(sizeof(bool), 1L << dimension);
     for (size_t y = 0; y < 1L << dimension; ++y) {
-        size_t t = tt->elements[x] ^ tt->elements[y] ^ tt->elements[x ^ y];
+        size_t t = f->elements[x] ^ f->elements[y] ^ f->elements[x ^ y];
         map[t] = true;
     }
     return map;
 }
 
-Node *computeDomain(const bool *map, TruthTable *tt) {
-    size_t dimension = tt->dimension;
+Node *computeDomain(TruthTable *f, const bool *map) {
+    size_t dimension = f->dimension;
     bool *domain = calloc(sizeof(bool), 1L << dimension);
     for (size_t i = 0; i < 1L << dimension; ++i) {
         domain[i] = true;
@@ -381,7 +376,7 @@ Node *computeDomain(const bool *map, TruthTable *tt) {
             bool *tempSet = calloc(sizeof(bool), 1L << dimension);
             for (size_t x = 0; x < 1L << dimension; ++x) {
                 for (size_t y = 0; y < 1L << dimension; ++y) {
-                    if (t == (tt->elements[x] ^ tt->elements[y] ^ tt->elements[x ^ y])) {
+                    if (t == (f->elements[x] ^ f->elements[y] ^ f->elements[x ^ y])) {
                         tempSet[x] = true;
                         tempSet[y] = true;
                         tempSet[x ^ y] = true;
@@ -409,20 +404,11 @@ bool innerPermutation(TruthTable *f, TruthTable *g, const size_t *basis, TruthTa
     Node **restrictedDomains = malloc(sizeof(Node **) * (dimension + 1));
     bool result;
 
-//    bool *map = computeSetOfTs(g, 0);
-//    restrictedDomains[0] = computeDomain(map, f);
-//    free(map);
-//
     for (size_t i = 0; i < dimension; ++i) {
         bool *map = computeSetOfTs(g, basis[i]);
-        restrictedDomains[i] = computeDomain(map, f);
+        restrictedDomains[i] = computeDomain(f, map);
         free(map);
     }
-    printf("Restricted domains in inner permutation call:\n");
-    for (int i = 0; i < dimension; ++i) {
-        printNodes(restrictedDomains[i]);
-    }
-    printf("\n");
 
     size_t *values = malloc(sizeof(size_t) * dimension);
 
@@ -487,13 +473,7 @@ bool innerPermutation(TruthTable *f, TruthTable *g, const size_t *basis, TruthTa
 
 bool dfs(Node **domains, size_t k, size_t *values, TruthTable *f, TruthTable *g, TruthTable *a2, const size_t *basis) {
     size_t dimension = f->dimension;
-    printf("Depth %lu\n", k);
-    if (k == dimension) {
-        reconstructTruthTable(values, a2);
-        TruthTable *aPrime = compose(f, a2);
-        destroyTruthTable(aPrime);
-        return true;
-    }
+    if (k == dimension) return true;
 
     Node *current = domains[k]->next;
     while (current != NULL) {
@@ -516,50 +496,9 @@ bool dfs(Node **domains, size_t k, size_t *values, TruthTable *f, TruthTable *g,
             }
         }
         if (!problem) {
-            bool isAffine = dfs(domains, k + 1, values, f, g, a2, basis);
-            if (isAffine) return true;
+            if (dfs(domains, k + 1, values, f, g, a2, basis)) return true;
         }
         current = current->next;
     }
     return false;
-}
-
-void reconstructTruthTable(const size_t *basisValues, TruthTable *a2) {
-    size_t dimension = a2->dimension;
-    for (size_t coordinate = 0; coordinate < 1L << dimension; ++coordinate) {
-        size_t result = 0;
-        for (size_t i = 0; i < dimension; ++i) {
-            if (1L << i & coordinate) {
-                result ^= basisValues[i];
-            }
-        }
-        a2->elements[coordinate] = result;
-    }
-}
-
-bool inDomain(size_t value, Node **domain, size_t sum) {
-    for (int i = 0; i < countNodes(domain[sum]); ++i) {
-        if (value == getNode(domain[sum], i)) {
-            return true;
-        }
-    }
-    return false;
-}
-bool isAffine(TruthTable *a2, const size_t *basis, Node **domains) {
-    size_t dimension = a2->dimension;
-    for (size_t x = 0; x < dimension + 1; ++x) {
-        for (size_t y = x + 1; y < dimension + 1; ++y) {
-            for (size_t z = y + 1; z < dimension + 1; ++z) {
-                size_t sum = basis[0] ^ basis[y] ^ basis[z];
-                size_t value = a2->elements[basis[0]] ^ a2->elements[basis[y]] ^ a2->elements[basis[z]];
-                if (a2->elements[sum] != value) {
-                    return false;
-                }
-                if (!inDomain(value, domains, sum)) {
-                    return false;
-                }
-            }
-        }
-    }
-    return true;
 }

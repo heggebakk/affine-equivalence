@@ -24,11 +24,8 @@ int main() {
         TruthTable *gPrime = initTruthTable(dimension);
         memcpy(gPrime->elements, functionG->elements, sizeof(size_t) * 1L << dimension);
         addConstant(gPrime, c);
-//        printf("G':\n");
-//        printTruthTable(gPrime);
         Partition *partitionG = partitionTt(gPrime);
         BucketsMap *bucketsMap = mapBuckets(partitionF, partitionG);
-//        printf("num of maps: %zu\n", bucketsMap->numOfMappings);
 
         for (size_t map = 0; map < bucketsMap->numOfMappings; ++map) {
             // Calculate outer permutation
@@ -43,8 +40,7 @@ int main() {
                 a2->elements[0] = 0;
 
                 if (innerPermutation(functionF, gDoublePrime, basis, a2)) {
-                    printf("Hello!\n");
-                    printf("a2:\n");
+                    printf("affine function:\n");
                     printTruthTable(a2);
                     foundSolution = true;
                 }
