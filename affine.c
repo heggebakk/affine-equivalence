@@ -442,14 +442,21 @@ bool innerPermutation(TruthTable *f, TruthTable *g, const size_t *basis, TruthTa
 
         result = dfs(restrictedDomains, 0, values, f, newG, a2, basis);
         if (result) {
+            /* If we get a result, we have to add the constant to the linear function that we found in dfs, and check if
+             * f * l2 + c = g */
+            for (int x = 0; x < 1L << dimension; ++x) {
+                a2->elements[x] ^= c2;
+            }
+
             /* If everything went smoothly, we should have aPrime == g */
             _Bool could_it_be = true;
             TruthTable *aPrime = compose(f, a2);
             for (size_t x = 0; x < (1L << aPrime->dimension); ++x) {
-                if ((aPrime->elements[x]) != newG->elements[x]) {
+                if (aPrime->elements[x] != g->elements[x]) {
                     printf("Fault at x = %lu, aPrime[%lu] = %lu, g[%lu] = %lu\n", x, x, aPrime->elements[x], x,
-                           newG->elements[x]);
+                           g->elements[x]);
                     could_it_be = false;
+                    result = false;
                     break;
                 }
             }
@@ -463,7 +470,7 @@ bool innerPermutation(TruthTable *f, TruthTable *g, const size_t *basis, TruthTa
                 }
             }
             destroyTruthTable(aPrime);
-	    destroyTruthTable(newG);
+            destroyTruthTable(newG);
             break;
         }
 	destroyTruthTable(newG);
