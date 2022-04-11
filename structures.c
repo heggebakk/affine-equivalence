@@ -157,7 +157,9 @@ void destroyBucketsMap(BucketsMap *bucketsMap) {
     for (int i = 0; i < bucketsMap->numOfMappings; ++i) {
         free(bucketsMap->domains[i]);
     }
-    free(bucketsMap->domains);
+    if (bucketsMap->numOfMappings != 0) {
+        free(bucketsMap->domains);
+    }
     free(bucketsMap);
 }
 
