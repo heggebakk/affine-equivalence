@@ -10,7 +10,7 @@ dirs = os.listdir(f"./resources/{dim}")
 
 def ea(name):
     filename = f"./resources/{dim}/{name}"
-    subprocess.run(["./main.out", filename])
+    subprocess.run(["./a.out", filename])
 
 
 if __name__ == '__main__':
@@ -18,7 +18,7 @@ if __name__ == '__main__':
     logging.basicConfig(format=time_format, level=logging.INFO, datefmt="%H:%M:%S")
     start = time.perf_counter()
     # threads = list()
-    for file in dirs[:1]:
+    for file in dirs:
         ea(file)
         # x = threading.Thread(target=ea, args=(file,))
         # threads.append(x)
