@@ -6,20 +6,24 @@ size_t *createBasis(size_t dimension);
 
 void addConstant(TruthTable *tt, size_t c);
 
-int main() {
-//    char *filename = "resources/dim6/gf/orthoderivative_GF.tt";
-    char *filename = "resources/dim6/gf/q_6_1.tt";
+int main(int argc, char *argv[]) {
+    char *filename;
+    if (argc < 2) {
+        filename = "resources/dim6/gf/q_6_1.tt";
+    } else {
+        printf("%s\n", argv[1]);
+        filename = argv[1];
+    }
     size_t dimension;
     size_t *basis;
-//    TruthTable *functionF = parseFile(filename);
-    TruthTable *functionF= orthoderivative(parseFile(filename));
-//    TruthTable *functionG = createTruthTable(functionF);
-//    TruthTable *functionG = parseFile("resources/dim6/gf/orthoderivative_g.tt");
-//    TruthTable *functionG = parseFile("resources/dim6/gf/g.tt");
-    TruthTable *functionG = orthoderivative(parseFile("resources/dim6/gf/g.tt"));
-//    TruthTable *functionG = orthoderivative(createTruthTable(functionF));
-    printTruthTable(functionF);
-    printTruthTable(functionG);
+    TruthTable *functionF1 = parseFile(filename);
+    TruthTable *functionG1 = createTruthTable(functionF1);
+    TruthTable *orthoderivativeF = orthoderivative(functionF1);
+    TruthTable *orthoderivativeG = orthoderivative(functionG1);
+    destroyTruthTable(functionF1);
+    destroyTruthTable(functionG1);
+    TruthTable *functionF = orthoderivativeF;
+    TruthTable *functionG = orthoderivativeG;
     Partition *partitionF = partitionTt(functionF);
     dimension = functionF->dimension;
     basis = createBasis(dimension);
@@ -32,16 +36,11 @@ int main() {
         addConstant(gPrime, c1); // Add the constant c1 to g: g' = g + c1
         Partition *partitionG = partitionTt(gPrime);
         BucketsMap *bucketsMap = mapBuckets(partitionF, partitionG);
-        printf("Partition F:\n");
-        printPartition(partitionF);
-        printf("Partition G:\n");
-        printPartition(partitionG);
 
         for (size_t map = 0; map < bucketsMap->numOfMappings; ++map) {
             // Calculate outer permutation
             TtNode *a1 = outerPermutation(partitionF, partitionG, dimension, basis, bucketsMap->domains[map]);
             size_t numPermutations = countTtNodes(a1);
-            printf("Number of permutations: %zu\n", numPermutations);
 
             for (size_t i = 0; i < numPermutations; ++i) {
                 TruthTable *a1Prime = getTtNode(a1, i);
