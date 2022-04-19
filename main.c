@@ -18,8 +18,15 @@ int main(int argc, char *argv[]) {
     size_t *basis;
     TruthTable *functionF1 = parseFile(filename);
     TruthTable *functionG1 = createTruthTable(functionF1);
+    printf("Function F:\n");
+    printTruthTable(functionF1);
+    printf("Function G:\n");
+    printTruthTable(functionG1);
     TruthTable *orthoderivativeF = orthoderivative(functionF1);
     TruthTable *orthoderivativeG = orthoderivative(functionG1);
+    printf("Orthoderivatives F & G:\n");
+    printTruthTable(orthoderivativeF);
+    printTruthTable(orthoderivativeG);
     destroyTruthTable(functionF1);
     destroyTruthTable(functionG1);
     TruthTable *functionF = orthoderivativeF;
