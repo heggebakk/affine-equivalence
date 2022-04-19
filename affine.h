@@ -31,9 +31,9 @@ size_t factorial(size_t value);
 
 void calculateMultiplicities(TruthTable *f, size_t *multiplicities);
 
-TruthTable *randomLinearPermutation(size_t dimension);
+TruthTable *randomAffinePermutation(size_t dimension);
 
-TruthTable *randomLinearFunction(size_t dimension);
+TruthTable *randomAffineFunction(size_t dimension);
 
 TruthTable * compose(TruthTable *f, TruthTable *g);
 

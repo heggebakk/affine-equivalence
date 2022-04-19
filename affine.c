@@ -142,7 +142,7 @@ TruthTable *compose(TruthTable *f, TruthTable *g) {
     return result;
 }
 
-TruthTable *randomLinearFunction(size_t dimension) {
+TruthTable *randomAffineFunction(size_t dimension) {
     size_t entries = 1L << dimension;
     size_t listGenerated[entries];
     listGenerated[0] = 0;
@@ -156,10 +156,14 @@ TruthTable *randomLinearFunction(size_t dimension) {
     }
     TruthTable *result = initTruthTable(dimension);
     memcpy(result->elements, listGenerated, sizeof(size_t) * entries);
+    size_t randConstant = rand() % entries;
+    for (int i = 0; i < entries; ++i) {
+        result->elements[i] ^= randConstant;
+    }
     return result;
 }
 
-TruthTable *randomLinearPermutation(size_t dimension) {
+TruthTable *randomAffinePermutation(size_t dimension) {
     size_t entries = 1L << dimension;
     bool generated[entries];
     size_t listGenerated[entries];
@@ -183,22 +187,26 @@ TruthTable *randomLinearPermutation(size_t dimension) {
     }
     TruthTable *result = initTruthTable(dimension);
     memcpy(result->elements, listGenerated, sizeof(size_t) * entries);
+    size_t randConstant = rand() % entries;
+    for (int i = 0; i < entries; ++i) {
+        result->elements[i] ^= randConstant;
+    }
     return result;
 }
 
 TruthTable *createTruthTable(TruthTable *f) {
     size_t dimension = f->dimension;
-    TruthTable *l1 = randomLinearPermutation(dimension);
-    TruthTable *l2 = randomLinearPermutation(dimension);
-    TruthTable *l = randomLinearFunction(dimension);
+    TruthTable *a1 = randomAffinePermutation(dimension);
+    TruthTable *a2 = randomAffinePermutation(dimension);
+    TruthTable *a = randomAffineFunction(dimension);
 
-    TruthTable *temp = compose(f, l2);
-    TruthTable *g = compose(l1, temp);
-    add(g, l);
+    TruthTable *temp = compose(f, a2);
+    TruthTable *g = compose(a1, temp);
+    add(g, a);
 
-    destroyTruthTable(l1);
-    destroyTruthTable(l2);
-    destroyTruthTable(l);
+    destroyTruthTable(a1);
+    destroyTruthTable(a2);
+    destroyTruthTable(a);
     destroyTruthTable(temp);
     return g;
 }
