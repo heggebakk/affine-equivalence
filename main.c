@@ -8,16 +8,21 @@ void addConstant(TruthTable *tt, size_t c);
 
 int main(int argc, char *argv[]) {
     char *filename;
+    char *wp; // Path to file for writing the results
+    size_t dimension; // Working dimension
+    size_t *basis; // List of the standard basis
     if (argc < 2) {
-        filename = "resources/dim6/gf/q_6_1.tt";
+        filename = "resources/dim6/q_6_1.tt"; // Default to GF(6)
+        wp = "results.txt";
     } else {
         printf("%s\n", argv[1]);
-        filename = argv[1];
+        filename = argv[1]; // First parameter is the path to the truth table F
+        wp = argv[2]; // Second parameter is the path to write the results to
     }
-    size_t dimension;
-    size_t *basis;
-    TruthTable *functionF1 = parseFile(filename);
-    TruthTable *functionG1 = createTruthTable(functionF1);
+    FILE *fp = fopen(wp, "w+");
+    fprintf(fp, "%s\n", filename);
+    TruthTable *functionF1 = parseFile(filename); // Parsed truth table F
+    TruthTable *functionG1 = createTruthTable(functionF1); // Affine function G
     printf("Function F:\n");
     printTruthTable(functionF1);
     printf("Function G:\n");
@@ -56,10 +61,13 @@ int main(int argc, char *argv[]) {
                 TruthTable *a2 = initTruthTable(dimension);
                 a2->elements[0] = 0;
 
-                if (innerPermutation(functionF, gDoublePrime, basis, a2)) {
+                if (innerPermutation(functionF, gDoublePrime, basis, a2, fp)) {
                     printf("Constant c1: %zu\n", c1);
+                    fprintf(fp, "Constant c1: %zu\n", c1);
                     printf("affine function:\n");
+                    fprintf(fp, "Affine function:\n");
                     printTruthTable(a2);
+                    writeTruthTable(a2, fp);
                     foundSolution = true;
                 }
                 destroyTruthTable(a1Inverse);
@@ -83,6 +91,7 @@ int main(int argc, char *argv[]) {
     destroyTruthTable(functionG);
     destroyPartition(partitionF);
     free(basis);
+    fclose(fp);
 
     return 0;
 }

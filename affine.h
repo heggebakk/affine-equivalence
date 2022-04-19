@@ -55,7 +55,7 @@ bool *computeSetOfTs(TruthTable *f, size_t x);
 
 Node *computeDomain(TruthTable *f, const bool *map);
 
-bool innerPermutation(TruthTable *f, TruthTable *g, const size_t *basis, TruthTable *a2);
+bool innerPermutation(TruthTable *f, TruthTable *g, const size_t *basis, TruthTable *a2, FILE *fp);
 
 bool dfs(Node **domains, size_t k, size_t *values, TruthTable *f, TruthTable *g, TruthTable *a2, const size_t *basis);
 

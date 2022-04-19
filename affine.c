@@ -399,7 +399,7 @@ Node *computeDomain(TruthTable *f, const bool *map) {
     return domainResult;
 }
 
-bool innerPermutation(TruthTable *f, TruthTable *g, const size_t *basis, TruthTable *a2) {
+bool innerPermutation(TruthTable *f, TruthTable *g, const size_t *basis, TruthTable *a2, FILE *fp) {
     size_t dimension = f->dimension;
     Node **restrictedDomains = malloc(sizeof(Node **) * (dimension + 1));
     bool result;
@@ -456,6 +456,7 @@ bool innerPermutation(TruthTable *f, TruthTable *g, const size_t *basis, TruthTa
                 }
             }
             printf("Constant c2: %zu\n", c2);
+            fprintf(fp, "Constant c2: %zu\n", c2);
 
             destroyTruthTable(aPrime);
             destroyTruthTable(newG);

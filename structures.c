@@ -23,6 +23,16 @@ void printTruthTable(TruthTable *truthTable) {
     printf("\n");
 }
 
+void writeTruthTable(TruthTable *f, FILE *filepath) {
+    for (int i = 0; i < 1L << f->dimension; ++i) {
+        if (i < (1L << f->dimension) - 1) {
+            fprintf(filepath, "%zu ", f->elements[i]);
+        } else {
+            fprintf(filepath, "%zu\n", f->elements[i]);
+        }
+    }
+}
+
 void destroyTruthTable(TruthTable *truthTable) {
     free(truthTable->elements);
     free(truthTable);

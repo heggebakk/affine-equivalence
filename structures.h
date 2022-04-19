@@ -21,7 +21,18 @@ typedef struct TruthTable {
  */
 TruthTable *initTruthTable(size_t dimension);
 
+/**
+ * Print a truth table to the console
+ * @param truthTable The truth table
+ */
 void printTruthTable(TruthTable *truthTable);
+
+/**
+ * Write a truth table to a file
+ * @param f The truth table
+ * @param filepath The FILE to write to
+ */
+void writeTruthTable(TruthTable *f, FILE *filepath);
 
 /**
  * Free memory for struct TruthTable
