@@ -8,9 +8,10 @@ dim = "dim8/classic"  # Edit to test for other dimensions
 dirs = os.listdir(f"../ea-equivalence/resources/TT_library/{dim}")
 
 
-def ea(name):
+def affine(name):
     filename = f"../ea-equivalence/resources/TT_library/{dim}/{name}"
-    subprocess.run(["./a.out", filename])
+    dest_name = f"./results/{dim}/{name[:-3]}.txt"
+    subprocess.run(["./a.out", filename, dest_name])
 
 
 if __name__ == '__main__':
@@ -19,7 +20,7 @@ if __name__ == '__main__':
     start = time.perf_counter()
     threads = list()
     for file in dirs:
-        x = threading.Thread(target=ea, args=(file,))
+        x = threading.Thread(target=affine, args=(file,))
         threads.append(x)
         x.start()
     for thread in threads:
