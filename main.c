@@ -6,6 +6,8 @@ size_t *createBasis(size_t dimension);
 
 void addConstant(TruthTable *tt, size_t c);
 
+bool isLinear(TruthTable *f);
+
 int main(int argc, char *argv[]) {
     char *filename;
     char *wp; // Path to file for writing the results
@@ -32,8 +34,6 @@ int main(int argc, char *argv[]) {
     printf("Orthoderivatives F & G:\n");
     printTruthTable(orthoderivativeF);
     printTruthTable(orthoderivativeG);
-    destroyTruthTable(functionF1);
-    destroyTruthTable(functionG1);
     TruthTable *functionF = orthoderivativeF;
     TruthTable *functionG = orthoderivativeG;
     Partition *partitionF = partitionTt(functionF);
@@ -64,11 +64,22 @@ int main(int argc, char *argv[]) {
                 if (innerPermutation(functionF, gDoublePrime, basis, a2, fp)) {
                     printf("Constant c1: %zu\n", c1);
                     fprintf(fp, "Constant c1: %zu\n", c1);
-                    printf("affine function:\n");
-                    fprintf(fp, "Affine function:\n");
+                    printf("a1: \n");
+                    fprintf(fp, "a1:\n");
+                    printTruthTable(a1Prime);
+                    writeTruthTable(a1Prime, fp);
+                    printf("a2:\n");
+                    fprintf(fp, "a2:\n");
                     printTruthTable(a2);
                     writeTruthTable(a2, fp);
                     foundSolution = true;
+
+                    TruthTable *orthoG = compose(a1Inverse, compose(orthoderivativeF, a2));
+                    TruthTable *a = compose(a1Prime, compose(functionF1, a2));
+                    add(a, functionG);
+                    printf("A:\n");
+                    printTruthTable(a);
+                    printf("A is linear: %s\n", isLinear(a) ? "True" : "False");
                 }
                 destroyTruthTable(a1Inverse);
                 destroyTruthTable(gDoublePrime);
@@ -87,6 +98,8 @@ int main(int argc, char *argv[]) {
         if (foundSolution) break;
     }
 
+    destroyTruthTable(functionF1);
+    destroyTruthTable(functionG1);
     destroyTruthTable(functionF);
     destroyTruthTable(functionG);
     destroyPartition(partitionF);
@@ -110,3 +123,15 @@ size_t *createBasis(size_t dimension) {
     }
     return basis;
 }
+
+bool isLinear(TruthTable *f) {
+    for (size_t a = 1; a < 1L << f->dimension; ++a) {
+        for (size_t b = a + 1; b < 1L << f->dimension; ++b) {
+            if (b > (a ^ b)) continue;
+            size_t result = f->elements[0] ^ f->elements[a] ^ f->elements[b] ^ f->elements[a ^ b];
+            if (result != 0) return false;
+        }
+    }
+    return true;
+}
+

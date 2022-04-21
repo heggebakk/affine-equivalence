@@ -430,31 +430,14 @@ bool innerPermutation(TruthTable *f, TruthTable *g, const size_t *basis, TruthTa
         if (result) {
             /* If we get a result, we have to add the constant to the linear function that we found in dfs, and check if
              * f * l2 + c = g */
-            for (int x = 0; x < 1L << dimension; ++x) {
-                a2->elements[x] ^= c2;
+            if (c2 != 0) {
+                for (int x = 0; x < 1L << dimension; ++x) {
+                    a2->elements[x] ^= c2;
+                }
             }
 
             /* If everything went smoothly, we should have aPrime == g */
-            _Bool could_it_be = true;
             TruthTable *aPrime = compose(f, a2);
-            for (size_t x = 0; x < (1L << aPrime->dimension); ++x) {
-                if (aPrime->elements[x] != g->elements[x]) {
-                    printf("Fault at x = %lu, aPrime[%lu] = %lu, g[%lu] = %lu\n", x, x, aPrime->elements[x], x,
-                           g->elements[x]);
-                    could_it_be = false;
-                    result = false;
-                    break;
-                }
-            }
-            if (!could_it_be) {
-                printf("Nooooooo\n");
-                printf("First value is %lu\n", a2->elements[0]);
-                printf("Second value is %lu\n", a2->elements[1]);
-                printf("All values on the basis:\n");
-                for (size_t i = 0; i < dimension; ++i) {
-                    printf("%lu -> %lu\n", i, values[i]);
-                }
-            }
             printf("Constant c2: %zu\n", c2);
             fprintf(fp, "Constant c2: %zu\n", c2);
 
