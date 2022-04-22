@@ -204,6 +204,19 @@ TruthTable *createTruthTable(TruthTable *f) {
     TruthTable *g = compose(a1, temp);
     add(g, a);
 
+    printf("A1:\n");
+    for(size_t i = 1; i < 64; ++i) {
+      a1->elements[i] ^= a1->elements[0];
+    }
+    a1->elements[0] = 0;
+    printTruthTable(a1);
+    printf("A2:\n");
+    for(size_t i = 1; i < 64; ++i) {
+      a2->elements[i] ^= a2->elements[0];
+    }
+    a2->elements[0] = 0;
+    printTruthTable(a2);
+
     destroyTruthTable(a1);
     destroyTruthTable(a2);
     destroyTruthTable(a);
