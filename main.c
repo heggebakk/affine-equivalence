@@ -6,7 +6,7 @@ size_t *createBasis(size_t dimension);
 
 void addConstant(TruthTable *tt, size_t c);
 
-bool isLinear(TruthTable *f);
+bool isAffine(TruthTable *f);
 
 int main(int argc, char *argv[]) {
     char *filename;
@@ -74,12 +74,17 @@ int main(int argc, char *argv[]) {
                     writeTruthTable(a2, fp);
                     foundSolution = true;
 
-                    TruthTable *orthoG = compose(a1Inverse, compose(orthoderivativeF, a2));
-                    TruthTable *a = compose(a1Prime, compose(functionF1, a2));
-                    add(a, functionG);
+                    /* At this point, we know (A1,A2) linear s.t. A1 * functionF * A2 = gPrime, where
+		            * functionF is the OD of F and gPrime is the OD of G
+		            *
+		            * If L1 * F * L2 + A = G for the actual functions F and G (as opposed to the ODs),
+		            * then L1 = a1Inverse, and L2 = a2
+		            */
+                    TruthTable *a = compose(a1Inverse, compose(functionF1, a2));
+                    add(a, functionG1);
                     printf("A:\n");
                     printTruthTable(a);
-                    printf("A is linear: %s\n", isLinear(a) ? "True" : "False");
+                    printf("A is affine %s\n", isAffine(a) ? "True" : "False");
                 }
                 destroyTruthTable(a1Inverse);
                 destroyTruthTable(gDoublePrime);
@@ -124,7 +129,7 @@ size_t *createBasis(size_t dimension) {
     return basis;
 }
 
-bool isLinear(TruthTable *f) {
+bool isAffine(TruthTable *f) {
     for (size_t a = 1; a < 1L << f->dimension; ++a) {
         for (size_t b = a + 1; b < 1L << f->dimension; ++b) {
             if (b > (a ^ b)) continue;
