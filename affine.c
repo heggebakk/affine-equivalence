@@ -113,7 +113,7 @@ void addMapping(BucketsMap *bucketsMap, size_t numBuckets, size_t *map) {
     bucketsMap->numOfMappings += 1;
 }
 
-void calculateMultiplicities(TruthTable *f, size_t *multiplicities) {
+void countMultiplicities(TruthTable *f, size_t *multiplicities) {
     size_t dimension = f->n;
     for (size_t x = 0; x < 1L << dimension; ++x) {
         size_t y = f->elements[x];
@@ -127,103 +127,6 @@ size_t factorial(size_t value) {
         factorial *= i;
     }
     return factorial;
-}
-
-void add(TruthTable *dest, TruthTable *src) {
-    for (size_t i = 0; i < 1L << dest->n; ++i) {
-        dest->elements[i] ^= src->elements[i];
-    }
-}
-
-TruthTable *compose(TruthTable *f, TruthTable *g) {
-    size_t dimension = f->n;
-    TruthTable *result = initTruthTable(dimension);
-    for (size_t x = 0; x < 1L << dimension; ++x) {
-        result->elements[x] = f->elements[g->elements[x]];
-    }
-    return result;
-}
-
-TruthTable *randomAffineFunction(size_t dimension) {
-    size_t entries = 1L << dimension;
-    size_t listGenerated[entries];
-    listGenerated[0] = 0;
-    size_t basisImages[dimension];
-    for (size_t i = 0; i < dimension; ++i) {
-        size_t j = rand() % entries;
-        basisImages[i] = j;
-        for (int k = 0; k < 1L << i; ++k) {
-            listGenerated[(1L << i) + k] = listGenerated[k] ^ j;
-        }
-    }
-    TruthTable *result = initTruthTable(dimension);
-    memcpy(result->elements, listGenerated, sizeof(size_t) * entries);
-    size_t randConstant = rand() % entries;
-    for (int i = 0; i < entries; ++i) {
-        result->elements[i] ^= randConstant;
-    }
-    return result;
-}
-
-TruthTable *randomAffinePermutation(size_t dimension) {
-    size_t entries = 1L << dimension;
-    bool generated[entries];
-    size_t listGenerated[entries];
-    generated[0] = true;
-    for (size_t i = 1; i < entries; ++i) {
-        generated[i] = false;
-    }
-    listGenerated[0] = 0;
-
-    size_t basisImages[dimension];
-    for (int i = 0; i < dimension; ++i) {
-        size_t j = rand() % entries;
-        while (generated[j]) {
-            j = (j + 1) % entries;
-        }
-        basisImages[i] = j;
-        for (int k = 0; k < 1L << i; ++k) {
-            listGenerated[1L << i ^ k] = listGenerated[k] ^ j;
-            generated[listGenerated[k] ^ j] = true;
-        }
-    }
-    TruthTable *result = initTruthTable(dimension);
-    memcpy(result->elements, listGenerated, sizeof(size_t) * entries);
-    size_t randConstant = rand() % entries;
-    for (int i = 0; i < entries; ++i) {
-        result->elements[i] ^= randConstant;
-    }
-    return result;
-}
-
-TruthTable *createTruthTable(TruthTable *f) {
-    size_t dimension = f->n;
-    TruthTable *a1 = randomAffinePermutation(dimension);
-    TruthTable *a2 = randomAffinePermutation(dimension);
-    TruthTable *a = randomAffineFunction(dimension);
-
-    TruthTable *temp = compose(f, a2);
-    TruthTable *g = compose(a1, temp);
-    add(g, a);
-
-    printf("A1:\n");
-    for(size_t i = 1; i < 64; ++i) {
-      a1->elements[i] ^= a1->elements[0];
-    }
-    a1->elements[0] = 0;
-    printTruthTable(a1);
-    printf("A2:\n");
-    for(size_t i = 1; i < 64; ++i) {
-      a2->elements[i] ^= a2->elements[0];
-    }
-    a2->elements[0] = 0;
-    printTruthTable(a2);
-
-    destroyTruthTable(a1);
-    destroyTruthTable(a2);
-    destroyTruthTable(a);
-    destroyTruthTable(temp);
-    return g;
 }
 
 TtNode * outerPermutation(Partition *f, Partition *g, size_t dimension, size_t *basis, size_t *domain) {
@@ -358,16 +261,6 @@ size_t *createClassRepresentation(Partition *partition, size_t dimension) {
         }
     }
     return class;
-}
-
-TruthTable *inverse(TruthTable *f) {
-    size_t dimension = f->n;
-    TruthTable *inverse = initTruthTable(dimension);
-    for (size_t x = 0; x < 1L << dimension; ++x) {
-        size_t y = f->elements[x];
-        inverse->elements[y] = x;
-    }
-    return inverse;
 }
 
 bool *computeSetOfTs(TruthTable *f, const size_t x) {

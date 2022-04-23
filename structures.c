@@ -12,6 +12,112 @@ TruthTable *initTruthTable(size_t n) {
     return tt;
 }
 
+void add(TruthTable *dest, TruthTable *src) {
+    for (size_t x = 0; x < 1L << dest->n; ++x) {
+        dest->elements[x] ^= src->elements[x]; // F[x] = F[x] + G[x]
+    }
+}
+
+TruthTable *compose(TruthTable *f, TruthTable *g) {
+    size_t dimension = f->n;
+    TruthTable *result = initTruthTable(dimension);
+    for (size_t x = 0; x < 1L << dimension; ++x) {
+        result->elements[x] = f->elements[g->elements[x]]; // F[G[x]]
+    }
+    return result;
+}
+
+TruthTable *inverse(TruthTable *f) {
+    size_t dimension = f->n;
+    TruthTable *inverse = initTruthTable(dimension);
+    for (size_t x = 0; x < 1L << dimension; ++x) {
+        size_t y = f->elements[x];
+        inverse->elements[y] = x;
+    }
+    return inverse;
+}
+
+TruthTable *randomAffineFunction(size_t n) {
+    size_t entries = 1L << n;
+    size_t listGenerated[entries];
+    listGenerated[0] = 0;
+    size_t basisImages[n];
+    for (size_t i = 0; i < n; ++i) {
+        size_t j = rand() % entries;
+        basisImages[i] = j;
+        for (int k = 0; k < 1L << i; ++k) {
+            listGenerated[(1L << i) + k] = listGenerated[k] ^ j;
+        }
+    }
+    TruthTable *newFunction = initTruthTable(n);
+    memcpy(newFunction->elements, listGenerated, sizeof(size_t) * entries);
+    size_t constant = rand() % entries; // A random constant c, where c is in 2^n
+    for (int i = 0; i < entries; ++i) {
+        newFunction->elements[i] ^= constant; // Add the constant
+    }
+    return newFunction;
+}
+
+TruthTable *randomAffinePermutation(size_t n) {
+    size_t entries = 1L << n;
+    bool generated[entries];
+    size_t listGenerated[entries];
+    generated[0] = true;
+    for (size_t i = 1; i < entries; ++i) {
+        generated[i] = false;
+    }
+    listGenerated[0] = 0;
+
+    size_t basisImages[n];
+    for (int i = 0; i < n; ++i) {
+        size_t j = rand() % entries;
+        while (generated[j]) {
+            j = (j + 1) % entries;
+        }
+        basisImages[i] = j;
+        for (int k = 0; k < 1L << i; ++k) {
+            listGenerated[1L << i ^ k] = listGenerated[k] ^ j;
+            generated[listGenerated[k] ^ j] = true;
+        }
+    }
+    TruthTable *newFunction = initTruthTable(n);
+    memcpy(newFunction->elements, listGenerated, sizeof(size_t) * entries);
+    size_t constant = rand() % entries; // A random constant c, where c is in 2^n
+    for (int i = 0; i < entries; ++i) {
+        newFunction->elements[i] ^= constant; // Add the constant
+    }
+    return newFunction;
+}
+
+TruthTable *createTruthTable(TruthTable *f) {
+    size_t dimension = f->n;
+
+    // A1 * F * A2 + A = G
+    TruthTable *A1 = randomAffinePermutation(dimension);
+    TruthTable *A2 = randomAffinePermutation(dimension);
+    TruthTable *A = randomAffineFunction(dimension);
+
+    TruthTable *FComposeA2 = compose(f, A2);
+    TruthTable *G = compose(A1, FComposeA2);
+    add(G, A);
+
+    for(size_t x = 1; x < 64; ++x) {
+        A1->elements[x] ^= A1->elements[0];
+    }
+    A1->elements[0] = 0;
+    for(size_t x = 1; x < 64; ++x) {
+        A2->elements[x] ^= A2->elements[0];
+    }
+    A2->elements[0] = 0;
+
+    destroyTruthTable(A1);
+    destroyTruthTable(A2);
+    destroyTruthTable(A);
+    destroyTruthTable(FComposeA2);
+
+    return G;
+}
+
 void printTruthTable(TruthTable *tt) {
     for (int i = 0; i < 1L << tt->n; ++i) {
         if (i < (1L << tt->n) - 1) {

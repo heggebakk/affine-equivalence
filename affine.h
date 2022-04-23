@@ -45,17 +45,7 @@ void addMapping(BucketsMap *bucketsMap, size_t numBuckets, size_t *map);
 
 size_t factorial(size_t value);
 
-void calculateMultiplicities(TruthTable *f, size_t *multiplicities);
-
-TruthTable *randomAffinePermutation(size_t dimension);
-
-TruthTable *randomAffineFunction(size_t dimension);
-
-TruthTable * compose(TruthTable *f, TruthTable *g);
-
-void add(TruthTable *dest, TruthTable *src);
-
-TruthTable *createTruthTable(TruthTable *f);
+void countMultiplicities(TruthTable *f, size_t *multiplicities);
 
 TtNode * outerPermutation(Partition *f, Partition *g, size_t dimension, size_t *basis, size_t *domain);
 
@@ -64,8 +54,6 @@ guessValuesOfL(size_t k, size_t *basis, size_t *images, Partition *f, Partition 
                bool *generatedImages, TtNode *a1, size_t *fClass, size_t *gClass, size_t *domain);
 
 size_t *createClassRepresentation(Partition *partition, size_t dimension);
-
-TruthTable * inverse(TruthTable *f);
 
 bool *computeSetOfTs(TruthTable *f, size_t x);
 

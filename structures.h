@@ -28,6 +28,49 @@ typedef struct TruthTable {
 TruthTable *initTruthTable(size_t n);
 
 /**
+ * Add the elements from one function into another.
+ * @param dest The truth table to add to
+ * @param src The truth table with the elements to add to the other.
+ */
+void add(TruthTable *dest, TruthTable *src);
+
+/**
+ * Compose two functions together and return a new function containing the result
+ * @param f The function F
+ * @param g The function G
+ * @return H = F * G
+ */
+TruthTable *compose(TruthTable *f, TruthTable *g);
+
+/**
+ * Find the inverse of F, F^{-1}
+ * @param f The function F
+ * @return F inverse
+ */
+TruthTable * inverse(TruthTable *f);
+
+/**
+ * Create a random affine function with 2^n elements
+ * @param n The dimension
+ * @return A new random Affine function
+ */
+TruthTable *randomAffineFunction(size_t n);
+
+/**
+ * Create a random affine permutation with 2^n elements
+ * @param n The dimension
+ * @return A new random Affine permutation
+ */
+TruthTable *randomAffinePermutation(size_t n);
+
+/**
+ * Create a new truth table with respect to a function F
+ * @param f The function F
+ * @return A new function
+ */
+TruthTable *createTruthTable(TruthTable *f);
+
+/**
  * Print all the elements of the TruthTable to the console
  * @param tt The pointer to the truth table to print out
  */
