@@ -1,7 +1,7 @@
 #include "orthoderivative.h"
 
 /**
- * @author Nikolay
+ * @author Nikolay S. Kaleyski
  */
 
 #define POPCOUNT_FUNCTION __builtin_popcountl
@@ -11,7 +11,7 @@ TruthTable *orthoderivative(TruthTable *f) {
     size_t entries = 1L << dimension;
     TruthTable *od = initTruthTable(dimension);
 
-    /* Compute each element of the ortho-derivative manually: o(a) must be such that
+    /* Compute each element of the orthoderivative manually: o(a) must be such that
      * the dot product o(a) * (F(x) + F(a+x) + F(a) + F(0)) is equal to 0 for all x. */
     od->elements[0] = 0;
     _Bool problem = false;
@@ -32,6 +32,5 @@ TruthTable *orthoderivative(TruthTable *f) {
             }
         }
     }
-
     return od;
 }
