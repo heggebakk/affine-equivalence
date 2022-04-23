@@ -13,19 +13,35 @@
 TruthTable *parseFile(char *file);
 
 /**
- * Create a mapping of all the buckets between partition f and g, where f -> g.
- * @param f A partition of a function f
- * @param g A partition of a function g
- * @return A struct BucketsMap that holds all the possible mappings between f and g
+ * Create a mapping of all the buckets between partition F and G, where F -> G.
+ * If the partitions have several buckets of the same size, there is several possible mappings
+ * Ex. F has the buckets with sizes [1,1,20,42] and G has [1,42,20,1] then we have the mappings
+ * F[0] -> G[0,3], F[1] -> G[0,3], F[2] -> G[2], F[3] -> G[1] s.t we get the bucketsMap: [0, 3, 2, 1] and [3, 0, 2, 1].
+ * @param F A partition of a function F
+ * @param G A partition of a function G
+ * @return A struct BucketsMap that holds all the possible mappings between F and G
  */
-BucketsMap *mapBuckets(struct Partition *f, struct Partition *g);
+BucketsMap *mapBuckets(struct Partition *F, struct Partition *G);
 
-void createBucketsMap(BucketsMap *bucketsMap, Node **domains, Partition *partition);
+/**
+ * A recursive function that creates all the possible mappings between F and G
+ * @param i Recursive step
+ * @param chosen Keep track of the usage of the buckets for the construction of the maps
+ * @param maps A list of all the mappings
+ * @param partition The Partition of function F
+ * @param bucketsMap The BucketsMap to store the mappings to
+ * @param currentBucket A list of buckets, that keeps track if a bucket is already in use in the current recursive step.
+ */
+void mapBucketsRecursively(size_t i, bool *chosen, Node **maps, Partition *partition, BucketsMap *bucketsMap,
+                           size_t *currentBucket);
 
-void selectRecursive(size_t i, bool *chosen, Node **domains, Partition *pG, BucketsMap *bucketsMap,
-                     size_t *currentDomain);
-
-void addDomain(BucketsMap *bucketsMap, size_t domainSize, size_t *domain);
+/**
+ * Add a new mapping to the BucketsMap
+ * @param bucketsMap The BucketsMap to add to
+ * @param numBuckets Number of buckets in the partition
+ * @param map The map to add
+ */
+void addMapping(BucketsMap *bucketsMap, size_t numBuckets, size_t *map);
 
 size_t factorial(size_t value);
 

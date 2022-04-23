@@ -70,7 +70,7 @@ Partition *initPartition(size_t n);
  * Print out the elements to each bucket to the console. Each line represents a bucket.
  * @param partition The partition to print out
  */
-void printPartition(Partition *partition);
+void printPartitionBuckets(Partition *partition);
 
 /**
  * Perform the partitioning of a function. This function will find out which bucket partition each element from the
@@ -149,12 +149,12 @@ void destroyNodes(Node *head);
  * F[0] -> G[0,3], F[1] -> G[0,3], F[2] -> G[2], F[3] -> G[1] s.t we get the bucketsMap: [0, 3, 2, 1] and [3, 0, 2, 1].
  */
 typedef struct BucketsMap {
-    size_t **domains;
+    size_t **mappings;
     size_t numOfMappings;
 } BucketsMap;
 
 /**
- * Initialize a new empty BucketsMap where there is allocated memory for the size of the list of domains
+ * Initialize a new empty BucketsMap where there is allocated memory for the size of the list of mappings
  * @return A new BucketsMap
  */
 BucketsMap *initBucketsMap();

@@ -29,85 +29,87 @@ TruthTable *parseFile(char *file) {
     return f;
 }
 
-BucketsMap *mapBuckets(struct Partition *f, struct Partition *g) {
+BucketsMap *mapBuckets(struct Partition *F, struct Partition *G) {
     BucketsMap *bucketsMap = initBucketsMap();
     // Check for contradictions between f and g
-    if (f->numBuckets != g->numBuckets) {
+    if (F->numBuckets != G->numBuckets) {
         return bucketsMap;
     }
 
-    // Find all domains for the different buckets.
-    struct Node **domains = malloc(sizeof(Node) * f->numBuckets);
-    for (size_t i = 0; i < f->numBuckets; ++i) domains[i] = initNode();
+    /* Find all mappings for the different buckets, meaning that if a bucket in F has the same sizes as the buckets in G
+     * add the index of the bucket in G to the mappings
+     * ex. [[3, 0], [1], [2], [3, 0]] */
+    struct Node **maps = malloc(sizeof(Node) * F->numBuckets);
+    for (size_t i = 0; i < F->numBuckets; ++i) maps[i] = initNode();
 
-    for (size_t i = 0; i < f->numBuckets; ++i) {
+    // If we find a bucket in F that maps to G, add this bucket to the domain
+    for (size_t i = 0; i < F->numBuckets; ++i) {
         bool sameSize = false; // For checking contradiction.
-        for (size_t j = 0; j < g->numBuckets; ++j) {
-            if (f->bucketSizes[i] == g->bucketSizes[j]) {
+        for (size_t j = 0; j < G->numBuckets; ++j) {
+            if (F->bucketSizes[i] == G->bucketSizes[j]) {
                 sameSize = true;
-                addNode(domains[i], j);
+                addNode(maps[i], j);
             }
         }
-        // If the partitions don't have the same sizes of the buckets, we have a contradiction
+        // If the partitions don't have the same sizes of the buckets, the partitions is not compatible.
         if (!sameSize) return NULL;
     }
 
     size_t numOfMappings = 1; // If no contradictions, we know that there is at least one valid mapping of f and g.
 
-    bool *isCalculated = calloc(sizeof(bool), f->numBuckets); // Boolean map for keeping track if we have used a bucket
-    for (size_t i = 0; i < f->numBuckets; ++i) {
-        Node *current = domains[i]->next;
+    // Calculate how many mappings there is by using the lists mappings created above. If the mappings for example look
+    // like [[3, 0], [1], [2], [3, 0]], we will obtain 2 different mappings, [3,1,2,0] and [0,1,2,3]
+    bool *isCalculated = calloc(sizeof(bool), F->numBuckets); // Keeping track if we have used a bucket in the domain for the calculation
+    for (size_t i = 0; i < F->numBuckets; ++i) {
+        Node *current = maps[i]->next;
         if (!isCalculated[current->data]) {
             isCalculated[current->data] = true;
-            numOfMappings *= factorial(countNodes(domains[i]));
+            numOfMappings *= factorial(countNodes(maps[i]));
         }
     }
     free(isCalculated);
 
-    bucketsMap->domains = malloc(sizeof(size_t *) * numOfMappings);
-    createBucketsMap(bucketsMap, domains, f);
+    bucketsMap->mappings = malloc(sizeof(size_t *) * numOfMappings);
+    bool *chosen = calloc(sizeof (bool), F->numBuckets);
+    size_t *currentBucket = malloc(sizeof(size_t) * F->numBuckets);
+    mapBucketsRecursively(0, chosen, maps, F, bucketsMap, currentBucket);
+    free(chosen);
+    free(currentBucket);
 
-    // Free memory for domains
-    for (size_t i = 0; i < f->numBuckets; ++i) {
-        destroyNodes(domains[i]);
+    // Free memory for mappings
+    for (size_t i = 0; i < F->numBuckets; ++i) {
+        destroyNodes(maps[i]);
     }
-    free(domains);
+    free(maps);
 
     return bucketsMap;
 }
 
-void createBucketsMap(BucketsMap *bucketsMap, Node **domains, Partition *partition) {
-    bool *chosen = calloc(sizeof (bool), partition->numBuckets);
-    size_t *currentDomain = malloc(sizeof(size_t) * partition->numBuckets);
-    selectRecursive(0, chosen, domains, partition, bucketsMap, currentDomain);
-
-    free(chosen);
-    free(currentDomain);
-}
-
-void selectRecursive(size_t i, bool *chosen, Node **domains, Partition *pG, BucketsMap *bucketsMap,
-                     size_t *currentDomain) {
-    if (i == pG->numBuckets) {
-        size_t domainSize = pG->numBuckets;
-        addDomain(bucketsMap, domainSize, currentDomain);
+void mapBucketsRecursively(size_t i, bool *chosen, Node **maps, Partition *partition, BucketsMap *bucketsMap,
+                           size_t *currentBucket) {
+    // If we have reached the end, we will add the new mapping tho the bucketsMap
+    if (i == partition->numBuckets) {
+        size_t numBuckets = partition->numBuckets;
+        addMapping(bucketsMap, numBuckets, currentBucket);
         return;
     }
-    Node *current = domains[i]->next;
+
+    Node *current = maps[i]->next; // The current bucket we want to map
     while (current != NULL) {
-        if (!chosen[current->data]) { // Check if we already have used the current data for the construction
-            currentDomain[i] = current->data;
+        if (!chosen[current->data]) { // Check if we already have used the current bucket for the construction
+            currentBucket[i] = current->data;
             chosen[current->data] = true;
-            selectRecursive(i + 1, chosen, domains, pG, bucketsMap, currentDomain);
+            mapBucketsRecursively(i + 1, chosen, maps, partition, bucketsMap, currentBucket);
             chosen[current->data] = false;
         }
         current = current->next;
     }
 }
 
-void addDomain(BucketsMap *bucketsMap, size_t domainSize, size_t *domain) {
+void addMapping(BucketsMap *bucketsMap, size_t numBuckets, size_t *map) {
     size_t size = bucketsMap->numOfMappings;
-    bucketsMap->domains[size] = malloc(sizeof(size_t *) * domainSize);
-    memcpy(bucketsMap->domains[size], domain, sizeof(size_t) * domainSize);
+    bucketsMap->mappings[size] = malloc(sizeof(size_t *) * numBuckets);
+    memcpy(bucketsMap->mappings[size], map, sizeof(size_t) * numBuckets); // Copy the map to the BucketsMap
     bucketsMap->numOfMappings += 1;
 }
 

@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include "structures.h"
 #include "affine.h"
+
 TruthTable *initTruthTable(size_t n) {
     TruthTable *tt = malloc(sizeof(TruthTable));
     tt->n = n; // Dimension of the function
@@ -45,7 +46,7 @@ Partition *initPartition(size_t n) {
     partition->numBuckets = 0;
 }
 
-void printPartition(Partition *partition) {
+void printPartitionBuckets(Partition *partition) {
     for (int i = 0; i < partition->numBuckets; ++i) {
         for (int j = 0; j < partition->bucketSizes[i]; ++j) {
             if (j == partition->bucketSizes[i] - 1) {
@@ -63,7 +64,7 @@ Partition *partitionTt(TruthTable *tt) {
     size_t *multiplicities = malloc(sizeof(size_t) * 1L << dimension);
     Partition *partition = initPartition(dimension);
     memset(multiplicities, 0, sizeof (size_t) * 1L << dimension);
-    calculateMultiplicities(tt, multiplicities);
+    countMultiplicities(tt, multiplicities);
 
     for (int i = 0; i < 1L << dimension; ++i) {
         size_t numBuckets = partition->numBuckets; // init value = 0
@@ -165,10 +166,10 @@ BucketsMap *initBucketsMap() {
 
 void destroyBucketsMap(BucketsMap *bucketsMap) {
     for (int i = 0; i < bucketsMap->numOfMappings; ++i) {
-        free(bucketsMap->domains[i]);
+        free(bucketsMap->mappings[i]);
     }
     if (bucketsMap->numOfMappings != 0) {
-        free(bucketsMap->domains);
+        free(bucketsMap->mappings);
     }
     free(bucketsMap);
 }

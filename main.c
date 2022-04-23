@@ -51,7 +51,7 @@ int main(int argc, char *argv[]) {
 
         for (size_t map = 0; map < bucketsMap->numOfMappings; ++map) {
             // Calculate outer permutation
-            TtNode *a1 = outerPermutation(partitionF, partitionG, dimension, basis, bucketsMap->domains[map]);
+            TtNode *a1 = outerPermutation(partitionF, partitionG, dimension, basis, bucketsMap->mappings[map]);
             size_t numPermutations = countTtNodes(a1);
 
             for (size_t i = 0; i < numPermutations; ++i) {
