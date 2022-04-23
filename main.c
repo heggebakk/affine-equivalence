@@ -80,11 +80,14 @@ int main(int argc, char *argv[]) {
 		            * If L1 * F * L2 + A = G for the actual functions F and G (as opposed to the ODs),
 		            * then L1 = a1Inverse, and L2 = a2
 		            */
-                    TruthTable *a = compose(a1Inverse, compose(functionF1, a2));
-                    add(a, functionG1);
+                    TruthTable *fComposeA2 = compose(functionF1, a2); // F * A2
+                    TruthTable *a = compose(a1Inverse, fComposeA2); // A1Inverse * F * A2
+                    add(a, functionG1); // A1Inverse * F * A2 + G = A
+                    destroyTruthTable(fComposeA2);
                     printf("A:\n");
                     printTruthTable(a);
                     printf("A is affine %s\n", isAffine(a) ? "True" : "False");
+                    destroyTruthTable(a);
                 }
                 destroyTruthTable(a1Inverse);
                 destroyTruthTable(gDoublePrime);
