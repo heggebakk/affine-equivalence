@@ -74,12 +74,12 @@ int main(int argc, char *argv[]) {
                     writeTruthTable(a2, fp);
                     foundSolution = true;
 
-		    /* At this point, we know (A1,A2) linear s.t. A1 * functionF * A2 = gPrime, where
-		     * functionF is the OD of F and gPrime is the OD of G
-		     *
-		     * If L1 * F * L2 + A = G for the actual functions F and G (as opposed to the ODs),
-		     * then L1 = a1Inverse, and L2 = a2
-		     */
+                    /* At this point, we know (A1,A2) linear s.t. A1 * functionF * A2 = gPrime, where
+		            * functionF is the OD of F and gPrime is the OD of G
+		            *
+		            * If L1 * F * L2 + A = G for the actual functions F and G (as opposed to the ODs),
+		            * then L1 = a1Inverse, and L2 = a2
+		            */
                     TruthTable *a = compose(a1Inverse, compose(functionF1, a2));
                     add(a, functionG1);
                     printf("A:\n");
