@@ -112,7 +112,7 @@ void addDomain(BucketsMap *bucketsMap, size_t domainSize, size_t *domain) {
 }
 
 void calculateMultiplicities(TruthTable *f, size_t *multiplicities) {
-    size_t dimension = f->dimension;
+    size_t dimension = f->n;
     for (size_t x = 0; x < 1L << dimension; ++x) {
         size_t y = f->elements[x];
         multiplicities[y] += 1;
@@ -128,13 +128,13 @@ size_t factorial(size_t value) {
 }
 
 void add(TruthTable *dest, TruthTable *src) {
-    for (size_t i = 0; i < 1L << dest->dimension; ++i) {
+    for (size_t i = 0; i < 1L << dest->n; ++i) {
         dest->elements[i] ^= src->elements[i];
     }
 }
 
 TruthTable *compose(TruthTable *f, TruthTable *g) {
-    size_t dimension = f->dimension;
+    size_t dimension = f->n;
     TruthTable *result = initTruthTable(dimension);
     for (size_t x = 0; x < 1L << dimension; ++x) {
         result->elements[x] = f->elements[g->elements[x]];
@@ -195,7 +195,7 @@ TruthTable *randomAffinePermutation(size_t dimension) {
 }
 
 TruthTable *createTruthTable(TruthTable *f) {
-    size_t dimension = f->dimension;
+    size_t dimension = f->n;
     TruthTable *a1 = randomAffinePermutation(dimension);
     TruthTable *a2 = randomAffinePermutation(dimension);
     TruthTable *a = randomAffineFunction(dimension);
@@ -359,7 +359,7 @@ size_t *createClassRepresentation(Partition *partition, size_t dimension) {
 }
 
 TruthTable *inverse(TruthTable *f) {
-    size_t dimension = f->dimension;
+    size_t dimension = f->n;
     TruthTable *inverse = initTruthTable(dimension);
     for (size_t x = 0; x < 1L << dimension; ++x) {
         size_t y = f->elements[x];
@@ -369,7 +369,7 @@ TruthTable *inverse(TruthTable *f) {
 }
 
 bool *computeSetOfTs(TruthTable *f, const size_t x) {
-    size_t dimension = f->dimension;
+    size_t dimension = f->n;
     bool *map = calloc(sizeof(bool), 1L << dimension);
     for (size_t y = 0; y < 1L << dimension; ++y) {
         size_t t = f->elements[x] ^ f->elements[y] ^ f->elements[x ^ y];
@@ -379,7 +379,7 @@ bool *computeSetOfTs(TruthTable *f, const size_t x) {
 }
 
 Node *computeDomain(TruthTable *f, const bool *map) {
-    size_t dimension = f->dimension;
+    size_t dimension = f->n;
     bool *domain = calloc(sizeof(bool), 1L << dimension);
     for (size_t i = 0; i < 1L << dimension; ++i) {
         domain[i] = true;
@@ -413,7 +413,7 @@ Node *computeDomain(TruthTable *f, const bool *map) {
 }
 
 bool innerPermutation(TruthTable *f, TruthTable *g, const size_t *basis, TruthTable *a2, FILE *fp) {
-    size_t dimension = f->dimension;
+    size_t dimension = f->n;
     Node **restrictedDomains = malloc(sizeof(Node **) * (dimension + 1));
     bool result;
 
@@ -471,7 +471,7 @@ bool innerPermutation(TruthTable *f, TruthTable *g, const size_t *basis, TruthTa
 }
 
 bool dfs(Node **domains, size_t k, size_t *values, TruthTable *f, TruthTable *g, TruthTable *a2, const size_t *basis) {
-    size_t dimension = f->dimension;
+    size_t dimension = f->n;
     if (k == dimension) return true;
 
     Node *current = domains[k]->next;

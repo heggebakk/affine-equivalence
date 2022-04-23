@@ -2,13 +2,13 @@
 #define AFFINE_AFFINE_H
 
 /**
- * Parse file containing the elements of a truth table. The first line is the dimension of the truth table. The
+ * Parse file containing the elements of a truth table. The first line is the n of the truth table. The
  * second line contains all the elements of the truth table:
  * For the GF(6):
  * 6
  * 0 1 8 15 27 14 35 48 53 39 43 63 47 41 1 1 41 15 15 47 52 6 34 22 20 33 36 23 8 41 8 47 36 52 35 53 35 39 20 22 33 34 48 53 39 48 6 23 22 33 63 14 23 52 14 43 27 63 36 6 27 43 20 34
  * @param file The file path of the truth table
- * @return The parsed file as the struct Truth Table holding the information about the dimension and all the elements
+ * @return The parsed file as the struct Truth Table holding the information about the n and all the elements
  */
 TruthTable *parseFile(char *file);
 

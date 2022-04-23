@@ -7,7 +7,7 @@
 #define POPCOUNT_FUNCTION __builtin_popcountl
 
 TruthTable *orthoderivative(TruthTable *f) {
-    size_t dimension = f->dimension;
+    size_t dimension = f->n;
     size_t entries = 1L << dimension;
     TruthTable *od = initTruthTable(dimension);
 

@@ -37,7 +37,7 @@ int main(int argc, char *argv[]) {
     TruthTable *functionF = orthoderivativeF;
     TruthTable *functionG = orthoderivativeG;
     Partition *partitionF = partitionTt(functionF);
-    dimension = functionF->dimension;
+    dimension = functionF->n;
     basis = createBasis(dimension);
 
     // Need to test for all possible constants, 0..2^n - 1.
@@ -115,7 +115,7 @@ int main(int argc, char *argv[]) {
 }
 
 void addConstant(TruthTable *tt, size_t c) {
-    size_t dimension = tt->dimension;
+    size_t dimension = tt->n;
     for (size_t i = 0; i < 1L << dimension; ++i) {
         tt->elements[i] ^= c;
     }
@@ -130,8 +130,8 @@ size_t *createBasis(size_t dimension) {
 }
 
 bool isAffine(TruthTable *f) {
-    for (size_t a = 1; a < 1L << f->dimension; ++a) {
-        for (size_t b = a + 1; b < 1L << f->dimension; ++b) {
+    for (size_t a = 1; a < 1L << f->n; ++a) {
+        for (size_t b = a + 1; b < 1L << f->n; ++b) {
             if (b > (a ^ b)) continue;
             size_t result = f->elements[0] ^ f->elements[a] ^ f->elements[b] ^ f->elements[a ^ b];
             if (result != 0) return false;
