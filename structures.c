@@ -170,7 +170,7 @@ Partition *partitionTt(TruthTable *tt) {
     size_t *multiplicities = malloc(sizeof(size_t) * 1L << dimension);
     Partition *partition = initPartition(dimension);
     memset(multiplicities, 0, sizeof (size_t) * 1L << dimension);
-    countMultiplicities(tt, multiplicities);
+    countElements(tt, multiplicities);
 
     for (int i = 0; i < 1L << dimension; ++i) {
         size_t numBuckets = partition->numBuckets; // init value = 0
