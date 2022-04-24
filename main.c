@@ -23,24 +23,43 @@ void addConstant(TruthTable *F, size_t c);
  */
 bool isAffine(TruthTable *F);
 
+void checkFlags(char *filename, char *writePath, int argc, char *argv[]);
+
+/**
+ * Print out a list over all the flags that can be used in the program
+ */
+void printHelp();
+
 int main(int argc, char *argv[]) {
     char *filename; // Filepath for the function F
     char *writePath; // Path to file for writing the results
     size_t n; // Working n
     size_t *basis; // List of the standard basis, {b_1, ..., b_n}
 
-    // TODO: Create a "interface" for the users
+    // Check for flags
+    printf("%d\n", argc);
     if (argc < 2) {
-        filename = "resources/dim6/q_6_1.tt"; // Defaults to GF(6) if file is not given
+        printHelp();
+    }
+    // Loop over the arguments given
+    filename = argv[argc - 1];
+    for (int i = 1; i < argc - 1; ++i) {
+        if (argv[i][0] == '-') {
+            switch (argv[i][1]) {
+                case 'h':
+                    printHelp();
+                case 'w':
+                    i++;
+                    writePath = argv[i];
+            }
+        }
+    }
+    if (writePath == NULL) {
+        // If the user have not sent in a filename to write to, we create a default file
         writePath = "results.txt";
-    } else {
-        printf("%s\n", argv[1]);
-        filename = argv[1]; // First parameter is the path to the truth table F
-        writePath = argv[2]; // Second parameter is the path to write the results to
     }
     FILE *fp = fopen(writePath, "w+");
     fprintf(fp, "%s\n", filename); // Write the filename of the function F
-
     TruthTable *functionF1 = parseFile(filename); // Parsed truth table of function F
     TruthTable *functionG1 = createTruthTable(functionF1); // Create a random function G with respect to F
     TruthTable *orthoderivativeF = orthoderivative(functionF1);
@@ -135,6 +154,18 @@ int main(int argc, char *argv[]) {
     fclose(fp);
 
     return 0;
+}
+
+
+void printHelp() {
+    printf("Affine\n");
+    printf("Usage: affine.out [affine_options] [filename]\n");
+    printf("Affine_options:\n");
+    printf("\t-h \t- Print help");
+    printf("\t-w \t- The root filename where the results should be written to");
+    printf("\n");
+    printf("\tfilename = the root filename of function F");
+    printf("-h override all other options.");
 }
 
 void addConstant(TruthTable *F, size_t c) {
