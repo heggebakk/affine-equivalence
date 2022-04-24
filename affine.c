@@ -17,7 +17,8 @@ TruthTable *parseFile(char *file) {
     }
 
     // If the file is found, we start parsing the file:
-    fscanf(fp, "%zu", &n); // Set the n of the truth table
+    // First line should contain one integer, the dimension of the function F.
+    fscanf(fp, "%zu", &n); // Set the dimension, n, for the truth table
     TruthTable *f = initTruthTable(n);
 
     // Set all the elements in the truth table. Should be 2^n elements.
@@ -31,7 +32,7 @@ TruthTable *parseFile(char *file) {
 
 BucketsMap *mapBuckets(struct Partition *F, struct Partition *G) {
     BucketsMap *bucketsMap = initBucketsMap();
-    // Check for contradictions between f and g
+    // Check for contradictions between F and G
     if (F->numBuckets != G->numBuckets) {
         return bucketsMap;
     }
