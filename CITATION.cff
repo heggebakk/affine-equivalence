@@ -2,12 +2,12 @@
 # Visit https://bit.ly/cffinit to generate yours today!
 
 cff-version: 1.2.0
-title: "Testing Affine equation"
+title: Testing Affine functions
 message: >-
   If you use this software, please cite it using the
   metadata from this file.
 type: software
 authors:
-  - given-names: Marie Heggebakk
-  - given-names: Nikolay S. Kaleyski
-url: "https://github.com/heggebakk/affine"
+  - family-names: Heggebakk
+    given-names: Marie
+url: 'https://github.com/heggebakk/affine'
