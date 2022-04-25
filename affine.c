@@ -17,7 +17,8 @@ TruthTable *parseFile(char *file) {
     }
 
     // If the file is found, we start parsing the file:
-    fscanf(fp, "%zu", &n); // Set the n of the truth table
+    // First line should contain one integer, the dimension of the function F.
+    fscanf(fp, "%zu", &n); // Set the dimension, n, for the truth table
     TruthTable *f = initTruthTable(n);
 
     // Set all the elements in the truth table. Should be 2^n elements.
@@ -29,237 +30,142 @@ TruthTable *parseFile(char *file) {
     return f;
 }
 
-BucketsMap *mapBuckets(struct Partition *f, struct Partition *g) {
+BucketsMap *mapBuckets(struct Partition *F, struct Partition *G) {
     BucketsMap *bucketsMap = initBucketsMap();
-    // Check for contradictions between f and g
-    if (f->numBuckets != g->numBuckets) {
+    // Check for contradictions between F and G
+    if (F->numBuckets != G->numBuckets) {
         return bucketsMap;
     }
 
-    // Find all domains for the different buckets.
-    struct Node **domains = malloc(sizeof(Node) * f->numBuckets);
-    for (size_t i = 0; i < f->numBuckets; ++i) domains[i] = initNode();
+    /* Find all mappings for the different buckets, meaning that if a bucket in F has the same sizes as the buckets in G
+     * add the index of the bucket in G to the mappings
+     * ex. [[3, 0], [1], [2], [3, 0]] */
+    struct Node **maps = malloc(sizeof(Node) * F->numBuckets);
+    for (size_t i = 0; i < F->numBuckets; ++i) maps[i] = initNode();
 
-    for (size_t i = 0; i < f->numBuckets; ++i) {
+    // If we find a bucket in F that maps to G, add this bucket to the domain
+    for (size_t i = 0; i < F->numBuckets; ++i) {
         bool sameSize = false; // For checking contradiction.
-        for (size_t j = 0; j < g->numBuckets; ++j) {
-            if (f->bucketSizes[i] == g->bucketSizes[j]) {
+        for (size_t j = 0; j < G->numBuckets; ++j) {
+            if (F->bucketSizes[i] == G->bucketSizes[j]) {
                 sameSize = true;
-                addNode(domains[i], j);
+                addNode(maps[i], j);
             }
         }
-        // If the partitions don't have the same sizes of the buckets, we have a contradiction
+        // If the partitions don't have the same sizes of the buckets, the partitions is not compatible.
         if (!sameSize) return NULL;
     }
 
     size_t numOfMappings = 1; // If no contradictions, we know that there is at least one valid mapping of f and g.
 
-    bool *isCalculated = calloc(sizeof(bool), f->numBuckets); // Boolean map for keeping track if we have used a bucket
-    for (size_t i = 0; i < f->numBuckets; ++i) {
-        Node *current = domains[i]->next;
+    // Calculate how many mappings there is by using the lists mappings created above. If the mappings for example look
+    // like [[3, 0], [1], [2], [3, 0]], we will obtain 2 different mappings, [3,1,2,0] and [0,1,2,3]
+    bool *isCalculated = calloc(sizeof(bool), F->numBuckets); // Keeping track if we have used a bucket in the domain for the calculation
+    for (size_t i = 0; i < F->numBuckets; ++i) {
+        Node *current = maps[i]->next;
         if (!isCalculated[current->data]) {
             isCalculated[current->data] = true;
-            numOfMappings *= factorial(countNodes(domains[i]));
+            numOfMappings *= factorial(countNodes(maps[i]));
         }
     }
     free(isCalculated);
 
-    bucketsMap->domains = malloc(sizeof(size_t *) * numOfMappings);
-    createBucketsMap(bucketsMap, domains, f);
+    bucketsMap->mappings = malloc(sizeof(size_t *) * numOfMappings);
+    bool *chosen = calloc(sizeof (bool), F->numBuckets);
+    size_t *currentBucket = malloc(sizeof(size_t) * F->numBuckets);
+    mapBucketsRecursively(0, chosen, maps, F, bucketsMap, currentBucket);
+    free(chosen);
+    free(currentBucket);
 
-    // Free memory for domains
-    for (size_t i = 0; i < f->numBuckets; ++i) {
-        destroyNodes(domains[i]);
+    // Free memory for mappings
+    for (size_t i = 0; i < F->numBuckets; ++i) {
+        destroyNodes(maps[i]);
     }
-    free(domains);
+    free(maps);
 
     return bucketsMap;
 }
 
-void createBucketsMap(BucketsMap *bucketsMap, Node **domains, Partition *partition) {
-    bool *chosen = calloc(sizeof (bool), partition->numBuckets);
-    size_t *currentDomain = malloc(sizeof(size_t) * partition->numBuckets);
-    selectRecursive(0, chosen, domains, partition, bucketsMap, currentDomain);
-
-    free(chosen);
-    free(currentDomain);
-}
-
-void selectRecursive(size_t i, bool *chosen, Node **domains, Partition *pG, BucketsMap *bucketsMap,
-                     size_t *currentDomain) {
-    if (i == pG->numBuckets) {
-        size_t domainSize = pG->numBuckets;
-        addDomain(bucketsMap, domainSize, currentDomain);
+void mapBucketsRecursively(size_t i, bool *chosen, Node **maps, Partition *partition, BucketsMap *bucketsMap,
+                           size_t *currentBucket) {
+    // If we have reached the end, we will add the new mapping tho the bucketsMap
+    if (i == partition->numBuckets) {
+        size_t numBuckets = partition->numBuckets;
+        addMapping(bucketsMap, numBuckets, currentBucket);
         return;
     }
-    Node *current = domains[i]->next;
+
+    Node *current = maps[i]->next; // The current bucket we want to map
     while (current != NULL) {
-        if (!chosen[current->data]) { // Check if we already have used the current data for the construction
-            currentDomain[i] = current->data;
+        if (!chosen[current->data]) { // Check if we already have used the current bucket for the construction
+            currentBucket[i] = current->data;
             chosen[current->data] = true;
-            selectRecursive(i + 1, chosen, domains, pG, bucketsMap, currentDomain);
+            mapBucketsRecursively(i + 1, chosen, maps, partition, bucketsMap, currentBucket);
             chosen[current->data] = false;
         }
         current = current->next;
     }
 }
 
-void addDomain(BucketsMap *bucketsMap, size_t domainSize, size_t *domain) {
+void addMapping(BucketsMap *bucketsMap, size_t numBuckets, size_t *map) {
     size_t size = bucketsMap->numOfMappings;
-    bucketsMap->domains[size] = malloc(sizeof(size_t *) * domainSize);
-    memcpy(bucketsMap->domains[size], domain, sizeof(size_t) * domainSize);
+    bucketsMap->mappings[size] = malloc(sizeof(size_t *) * numBuckets);
+    memcpy(bucketsMap->mappings[size], map, sizeof(size_t) * numBuckets); // Copy the map to the BucketsMap
     bucketsMap->numOfMappings += 1;
 }
 
-void calculateMultiplicities(TruthTable *f, size_t *multiplicities) {
-    size_t dimension = f->dimension;
+void countElements(TruthTable *F, size_t *occurrences) {
+    size_t dimension = F->n;
     for (size_t x = 0; x < 1L << dimension; ++x) {
-        size_t y = f->elements[x];
-        multiplicities[y] += 1;
+        size_t y = F->elements[x];
+        occurrences[y] += 1;
     }
 }
 
-size_t factorial(size_t value) {
+size_t factorial(size_t n) {
     size_t factorial = 1;
-    for (size_t i = 1; i < value + 1; ++i) {
+    for (size_t i = 1; i < n + 1; ++i) {
         factorial *= i;
     }
     return factorial;
 }
 
-void add(TruthTable *dest, TruthTable *src) {
-    for (size_t i = 0; i < 1L << dest->dimension; ++i) {
-        dest->elements[i] ^= src->elements[i];
-    }
-}
-
-TruthTable *compose(TruthTable *f, TruthTable *g) {
-    size_t dimension = f->dimension;
-    TruthTable *result = initTruthTable(dimension);
-    for (size_t x = 0; x < 1L << dimension; ++x) {
-        result->elements[x] = f->elements[g->elements[x]];
-    }
-    return result;
-}
-
-TruthTable *randomAffineFunction(size_t dimension) {
-    size_t entries = 1L << dimension;
-    size_t listGenerated[entries];
-    listGenerated[0] = 0;
-    size_t basisImages[dimension];
-    for (size_t i = 0; i < dimension; ++i) {
-        size_t j = rand() % entries;
-        basisImages[i] = j;
-        for (int k = 0; k < 1L << i; ++k) {
-            listGenerated[(1L << i) + k] = listGenerated[k] ^ j;
-        }
-    }
-    TruthTable *result = initTruthTable(dimension);
-    memcpy(result->elements, listGenerated, sizeof(size_t) * entries);
-    size_t randConstant = rand() % entries;
-    for (int i = 0; i < entries; ++i) {
-        result->elements[i] ^= randConstant;
-    }
-    return result;
-}
-
-TruthTable *randomAffinePermutation(size_t dimension) {
-    size_t entries = 1L << dimension;
-    bool generated[entries];
-    size_t listGenerated[entries];
-    generated[0] = true;
-    for (size_t i = 1; i < entries; ++i) {
-        generated[i] = false;
-    }
-    listGenerated[0] = 0;
-
-    size_t basisImages[dimension];
-    for (int i = 0; i < dimension; ++i) {
-        size_t j = rand() % entries;
-        while (generated[j]) {
-            j = (j + 1) % entries;
-        }
-        basisImages[i] = j;
-        for (int k = 0; k < 1L << i; ++k) {
-            listGenerated[1L << i ^ k] = listGenerated[k] ^ j;
-            generated[listGenerated[k] ^ j] = true;
-        }
-    }
-    TruthTable *result = initTruthTable(dimension);
-    memcpy(result->elements, listGenerated, sizeof(size_t) * entries);
-    size_t randConstant = rand() % entries;
-    for (int i = 0; i < entries; ++i) {
-        result->elements[i] ^= randConstant;
-    }
-    return result;
-}
-
-TruthTable *createTruthTable(TruthTable *f) {
-    size_t dimension = f->dimension;
-    TruthTable *a1 = randomAffinePermutation(dimension);
-    TruthTable *a2 = randomAffinePermutation(dimension);
-    TruthTable *a = randomAffineFunction(dimension);
-
-    TruthTable *temp = compose(f, a2);
-    TruthTable *g = compose(a1, temp);
-    add(g, a);
-
-    printf("A1:\n");
-    for(size_t i = 1; i < 64; ++i) {
-      a1->elements[i] ^= a1->elements[0];
-    }
-    a1->elements[0] = 0;
-    printTruthTable(a1);
-    printf("A2:\n");
-    for(size_t i = 1; i < 64; ++i) {
-      a2->elements[i] ^= a2->elements[0];
-    }
-    a2->elements[0] = 0;
-    printTruthTable(a2);
-
-    destroyTruthTable(a1);
-    destroyTruthTable(a2);
-    destroyTruthTable(a);
-    destroyTruthTable(temp);
-    return g;
-}
-
-TtNode * outerPermutation(Partition *f, Partition *g, size_t dimension, size_t *basis, size_t *domain) {
-    TtNode *a1 = initTtNode();
-    size_t *images = malloc(sizeof(size_t) * dimension); // The images of the basis elements under l
-    size_t *generated = calloc(sizeof(size_t), 1L << dimension); // A partial truth table for l
-    bool *generatedImages = calloc(sizeof(bool), 1L << dimension);
+TtNode *outerPermutation(Partition *F, Partition *G, size_t n, size_t *basis, size_t *map) {
+    TtNode *L1 = initTtNode();
+    size_t *images = malloc(sizeof(size_t) * n); // The images of the basis elements under l
+    size_t *generated = calloc(sizeof(size_t), 1L << n); // A partial truth table for l
+    bool *generatedImages = calloc(sizeof(bool), 1L << n);
 
     /**
      * Create dictionaries indexing buckets by elements
-     * For instance, fClassPosition[i] would be the index of the bucket w.r.t. f containing the element i.
+     * For instance, fClassPosition[i] would be the index of the bucket w.r.t. F containing the element i.
      */
-    size_t *fClass = createClassRepresentation(f, dimension);
-    size_t *gClass = createClassRepresentation(g, dimension);
+    size_t *fClass = createBucketRepresentation(F, n);
+    size_t *gClass = createBucketRepresentation(G, n);
 
     // Recursively guess the values of l on the basis (essentially, a dfs with backtracking upon contradiction
-    guessValuesOfL(0, basis, images, f, g, dimension, generated, generatedImages, a1, fClass, gClass, domain);
+    guessValuesOfL(0, basis, images, F, G, n, generated, generatedImages, L1, fClass, gClass, map);
 
     free(images);
     free(generated);
     free(generatedImages);
     free(fClass);
     free(gClass);
-    return a1;
+    return L1;
 }
 
 void
-guessValuesOfL(size_t k, size_t *basis, size_t *images, Partition *f, Partition *g, size_t dimension, size_t *generated,
-               bool *generatedImages, TtNode *a1, size_t *fClass, size_t *gClass, size_t *domain) {
+guessValuesOfL(size_t k, size_t *basis, size_t *images, Partition *F, Partition *G, size_t n, size_t *generated,
+               bool *generatedImages, TtNode *L1, size_t *fBucket, size_t *gBucket, size_t *map) {
     /**
      * If all basis elements have been assigned an image, and no contradictions have occurs, then we have found a
      * linear permutation preserving the partition. We reconstruct its truth table, and add it to the linked list
      * containing all permutations found by the search.
      */
-    if (k == dimension) {
-        TruthTable *new = initTruthTable(dimension);
-        memcpy(new->elements, generated, sizeof(size_t) * 1L << dimension);
-        addTtNode(a1, new);
+    if (k == n) {
+        TruthTable *new = initTruthTable(n);
+        memcpy(new->elements, generated, sizeof(size_t) * 1L << n);
+        addTtNode(L1, new);
         destroyTruthTable(new);
         return;
     }
@@ -268,11 +174,11 @@ guessValuesOfL(size_t k, size_t *basis, size_t *images, Partition *f, Partition 
      * We then take the bucket of the same size from the partition with respect to G. We know that the image of the
      * basis element must belong to that bucket.
      */
-    size_t posBucketG = domain[fClass[basis[k]]];
+    size_t posBucketG = map[fBucket[basis[k]]];
 
     // We now go through all possible choices from the bucket
-    for (size_t ick = 0; ick < g->bucketSizes[posBucketG]; ++ick) {
-        size_t ck = g->buckets[posBucketG][ick];
+    for (size_t ick = 0; ick < G->bucketSizes[posBucketG]; ++ick) {
+        size_t ck = G->buckets[posBucketG][ick];
 
         /**
          * Since we want the function to be a permutation, the image of the basis element should not be one of the
@@ -313,7 +219,7 @@ guessValuesOfL(size_t k, size_t *basis, size_t *images, Partition *f, Partition 
              }
 
              // Check for contradiction as described above
-             if (f->bucketSizes[fClass[x]] != g->bucketSizes[gClass[y]]) {
+             if (F->bucketSizes[fBucket[x]] != G->bucketSizes[gBucket[y]]) {
                  problem = true;
                  break;
              }
@@ -327,8 +233,8 @@ guessValuesOfL(size_t k, size_t *basis, size_t *images, Partition *f, Partition 
         // If no contradiction is encountered, we go to the next basis element
         if (!problem) {
             images[k] = ck;
-            guessValuesOfL(k + 1, basis, images, f, g, dimension, generated, generatedImages, a1, fClass, gClass,
-                           domain);
+            guessValuesOfL(k + 1, basis, images, F, G, n, generated, generatedImages, L1, fBucket, gBucket,
+                           map);
         }
 
         // When backtracking, we need to reset the generated image indicators
@@ -346,40 +252,30 @@ guessValuesOfL(size_t k, size_t *basis, size_t *images, Partition *f, Partition 
     }
 }
 
-size_t *createClassRepresentation(Partition *partition, size_t dimension) {
+size_t *createBucketRepresentation(Partition *F, size_t n) {
     // Loop over each bucket and set the bucket pos for each value
-    size_t *class = malloc(sizeof(size_t) * 1L << dimension);
-    for (size_t i = 0; i < partition->numBuckets; ++i) {
-        for (size_t j = 0; j < partition->bucketSizes[i]; ++j) {
-            size_t value = partition->buckets[i][j];
+    size_t *class = malloc(sizeof(size_t) * 1L << n);
+    for (size_t i = 0; i < F->numBuckets; ++i) {
+        for (size_t j = 0; j < F->bucketSizes[i]; ++j) {
+            size_t value = F->buckets[i][j];
             class[value] = i; // Set the bucket number in the position of the value
         }
     }
     return class;
 }
 
-TruthTable *inverse(TruthTable *f) {
-    size_t dimension = f->dimension;
-    TruthTable *inverse = initTruthTable(dimension);
-    for (size_t x = 0; x < 1L << dimension; ++x) {
-        size_t y = f->elements[x];
-        inverse->elements[y] = x;
-    }
-    return inverse;
-}
-
-bool *computeSetOfTs(TruthTable *f, const size_t x) {
-    size_t dimension = f->dimension;
+bool *computeSetOfTs(TruthTable *F, const size_t x) {
+    size_t dimension = F->n;
     bool *map = calloc(sizeof(bool), 1L << dimension);
     for (size_t y = 0; y < 1L << dimension; ++y) {
-        size_t t = f->elements[x] ^ f->elements[y] ^ f->elements[x ^ y];
+        size_t t = F->elements[x] ^ F->elements[y] ^ F->elements[x ^ y];
         map[t] = true;
     }
     return map;
 }
 
-Node *computeDomain(TruthTable *f, const bool *map) {
-    size_t dimension = f->dimension;
+Node *computeRestrictedDomains(TruthTable *F, const bool *map) {
+    size_t dimension = F->n;
     bool *domain = calloc(sizeof(bool), 1L << dimension);
     for (size_t i = 0; i < 1L << dimension; ++i) {
         domain[i] = true;
@@ -389,7 +285,7 @@ Node *computeDomain(TruthTable *f, const bool *map) {
             bool *tempSet = calloc(sizeof(bool), 1L << dimension);
             for (size_t x = 0; x < 1L << dimension; ++x) {
                 for (size_t y = 0; y < 1L << dimension; ++y) {
-                    if (t == (f->elements[x] ^ f->elements[y] ^ f->elements[x ^ y])) {
+                    if (t == (F->elements[x] ^ F->elements[y] ^ F->elements[x ^ y])) {
                         tempSet[x] = true;
                         tempSet[y] = true;
                         tempSet[x ^ y] = true;
@@ -412,45 +308,45 @@ Node *computeDomain(TruthTable *f, const bool *map) {
     return domainResult;
 }
 
-bool innerPermutation(TruthTable *f, TruthTable *g, const size_t *basis, TruthTable *a2, FILE *fp) {
-    size_t dimension = f->dimension;
+bool innerPermutation(TruthTable *F, TruthTable *G, const size_t *basis, TruthTable *L2, FILE *fp) {
+    size_t dimension = F->n;
     Node **restrictedDomains = malloc(sizeof(Node **) * (dimension + 1));
     bool result;
 
     for (size_t i = 0; i < dimension; ++i) {
-        bool *map = computeSetOfTs(g, basis[i]);
-        restrictedDomains[i] = computeDomain(f, map);
+        bool *map = computeSetOfTs(G, basis[i]);
+        restrictedDomains[i] = computeRestrictedDomains(F, map);
         free(map);
     }
 
     size_t *values = malloc(sizeof(size_t) * dimension);
 
-    size_t constant_term = g->elements[0];
-    /* Guess of constant term of a2 */
+    size_t constant_term = G->elements[0];
+    /* Guess of constant term of L2 */
 
     for (size_t c2 = 0; c2 < 1L << dimension; ++c2) {
-        /* Only consider preimages of g(0) */
-        if (f->elements[c2] != constant_term) {
+        /* Only consider preimages of G(0) */
+        if (F->elements[c2] != constant_term) {
             continue;
         }
 
         TruthTable *newG = initTruthTable(dimension);
         for (size_t x = 0; x < 1L << dimension; ++x) {
-            newG->elements[x ^ c2] = g->elements[x];
+            newG->elements[x ^ c2] = G->elements[x];
         }
 
-        result = dfs(restrictedDomains, 0, values, f, newG, a2, basis);
+        result = dfs(restrictedDomains, 0, values, F, newG, L2, basis);
         if (result) {
             /* If we get a result, we have to add the constant to the linear function that we found in dfs, and check if
-             * f * l2 + c = g */
+             * F * l2 + c = G */
             if (c2 != 0) {
                 for (int x = 0; x < 1L << dimension; ++x) {
-                    a2->elements[x] ^= c2;
+                    L2->elements[x] ^= c2;
                 }
             }
 
-            /* If everything went smoothly, we should have aPrime == g */
-            TruthTable *aPrime = compose(f, a2);
+            /* If everything went smoothly, we should have aPrime == G */
+            TruthTable *aPrime = compose(F, L2);
             printf("Constant c2: %zu\n", c2);
             fprintf(fp, "Constant c2: %zu\n", c2);
 
@@ -470,8 +366,8 @@ bool innerPermutation(TruthTable *f, TruthTable *g, const size_t *basis, TruthTa
     return result;
 }
 
-bool dfs(Node **domains, size_t k, size_t *values, TruthTable *f, TruthTable *g, TruthTable *a2, const size_t *basis) {
-    size_t dimension = f->dimension;
+bool dfs(Node **domains, size_t k, size_t *values, TruthTable *F, TruthTable *G, TruthTable *L2, const size_t *basis) {
+    size_t dimension = F->n;
     if (k == dimension) return true;
 
     Node *current = domains[k]->next;
@@ -485,17 +381,17 @@ bool dfs(Node **domains, size_t k, size_t *values, TruthTable *f, TruthTable *g,
              * as the vector describing it
              */
             size_t new_input = linear_combination ^ (1L << k);
-            size_t new_value = a2->elements[linear_combination] ^ current->data;
-            a2->elements[new_input] = new_value;
-            /* Check for a violation of f * a2 = g */
-            if (f->elements[new_value] != g->elements[new_input]) {
+            size_t new_value = L2->elements[linear_combination] ^ current->data;
+            L2->elements[new_input] = new_value;
+            /* Check for a violation of F * L2 = G */
+            if (F->elements[new_value] != G->elements[new_input]) {
                 /* Something is wrong, backtrack */
                 problem = true;
                 break;
             }
         }
         if (!problem) {
-            if (dfs(domains, k + 1, values, f, g, a2, basis)) return true;
+            if (dfs(domains, k + 1, values, F, G, L2, basis)) return true;
         }
         current = current->next;
     }

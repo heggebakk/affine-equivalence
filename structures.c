@@ -5,48 +5,154 @@
 #include "structures.h"
 #include "affine.h"
 
-TruthTable *initTruthTable(size_t dimension) {
-    TruthTable *newTt = malloc(sizeof(TruthTable));
-    newTt->dimension = dimension;
-    newTt->elements = malloc(sizeof(size_t) * 1L << dimension);
-    return newTt;
+TruthTable *initTruthTable(size_t n) {
+    TruthTable *tt = malloc(sizeof(TruthTable));
+    tt->n = n; // Dimension of the function
+    tt->elements = malloc(sizeof(size_t) * 1L << n); // Allocate memory to fit all the elements from the function
+    return tt;
 }
 
-void printTruthTable(TruthTable *truthTable) {
-    for (int i = 0; i < 1L << truthTable->dimension; ++i) {
-        if (i < (1L << truthTable->dimension) - 1) {
-            printf("%zu ", truthTable->elements[i]);
+void add(TruthTable *dest, TruthTable *src) {
+    for (size_t x = 0; x < 1L << dest->n; ++x) {
+        dest->elements[x] ^= src->elements[x]; // F[x] = F[x] + G[x]
+    }
+}
+
+TruthTable *compose(TruthTable *f, TruthTable *g) {
+    size_t dimension = f->n;
+    TruthTable *result = initTruthTable(dimension);
+    for (size_t x = 0; x < 1L << dimension; ++x) {
+        result->elements[x] = f->elements[g->elements[x]]; // F[G[x]]
+    }
+    return result;
+}
+
+TruthTable *inverse(TruthTable *f) {
+    size_t dimension = f->n;
+    TruthTable *inverse = initTruthTable(dimension);
+    for (size_t x = 0; x < 1L << dimension; ++x) {
+        size_t y = f->elements[x];
+        inverse->elements[y] = x;
+    }
+    return inverse;
+}
+
+TruthTable *randomAffineFunction(size_t n) {
+    size_t entries = 1L << n;
+    size_t listGenerated[entries];
+    listGenerated[0] = 0;
+    size_t basisImages[n];
+    for (size_t i = 0; i < n; ++i) {
+        size_t j = rand() % entries;
+        basisImages[i] = j;
+        for (int k = 0; k < 1L << i; ++k) {
+            listGenerated[(1L << i) + k] = listGenerated[k] ^ j;
+        }
+    }
+    TruthTable *newFunction = initTruthTable(n);
+    memcpy(newFunction->elements, listGenerated, sizeof(size_t) * entries);
+    size_t constant = rand() % entries; // A random constant c, where c is in 2^n
+    for (int i = 0; i < entries; ++i) {
+        newFunction->elements[i] ^= constant; // Add the constant
+    }
+    return newFunction;
+}
+
+TruthTable *randomAffinePermutation(size_t n) {
+    size_t entries = 1L << n;
+    bool generated[entries];
+    size_t listGenerated[entries];
+    generated[0] = true;
+    for (size_t i = 1; i < entries; ++i) {
+        generated[i] = false;
+    }
+    listGenerated[0] = 0;
+
+    size_t basisImages[n];
+    for (int i = 0; i < n; ++i) {
+        size_t j = rand() % entries;
+        while (generated[j]) {
+            j = (j + 1) % entries;
+        }
+        basisImages[i] = j;
+        for (int k = 0; k < 1L << i; ++k) {
+            listGenerated[1L << i ^ k] = listGenerated[k] ^ j;
+            generated[listGenerated[k] ^ j] = true;
+        }
+    }
+    TruthTable *newFunction = initTruthTable(n);
+    memcpy(newFunction->elements, listGenerated, sizeof(size_t) * entries);
+    size_t constant = rand() % entries; // A random constant c, where c is in 2^n
+    for (int i = 0; i < entries; ++i) {
+        newFunction->elements[i] ^= constant; // Add the constant
+    }
+    return newFunction;
+}
+
+TruthTable *createTruthTable(TruthTable *f) {
+    size_t dimension = f->n;
+
+    // A1 * F * A2 + A = G
+    TruthTable *A1 = randomAffinePermutation(dimension);
+    TruthTable *A2 = randomAffinePermutation(dimension);
+    TruthTable *A = randomAffineFunction(dimension);
+
+    TruthTable *FComposeA2 = compose(f, A2);
+    TruthTable *G = compose(A1, FComposeA2);
+    add(G, A);
+
+    for(size_t x = 1; x < 64; ++x) {
+        A1->elements[x] ^= A1->elements[0];
+    }
+    A1->elements[0] = 0;
+    for(size_t x = 1; x < 64; ++x) {
+        A2->elements[x] ^= A2->elements[0];
+    }
+    A2->elements[0] = 0;
+
+    destroyTruthTable(A1);
+    destroyTruthTable(A2);
+    destroyTruthTable(A);
+    destroyTruthTable(FComposeA2);
+
+    return G;
+}
+
+void printTruthTable(TruthTable *tt) {
+    for (int i = 0; i < 1L << tt->n; ++i) {
+        if (i < (1L << tt->n) - 1) {
+            printf("%zu ", tt->elements[i]);
         } else {
-            printf("%zu\n", truthTable->elements[i]);
+            printf("%zu\n", tt->elements[i]);
         }
     }
     printf("\n");
 }
 
-void writeTruthTable(TruthTable *f, FILE *filepath) {
-    for (int i = 0; i < 1L << f->dimension; ++i) {
-        if (i < (1L << f->dimension) - 1) {
-            fprintf(filepath, "%zu ", f->elements[i]);
+void writeTruthTable(TruthTable *tt, FILE *filepath) {
+    for (int i = 0; i < 1L << tt->n; ++i) {
+        if (i < (1L << tt->n) - 1) {
+            fprintf(filepath, "%zu ", tt->elements[i]);
         } else {
-            fprintf(filepath, "%zu\n", f->elements[i]);
+            fprintf(filepath, "%zu\n", tt->elements[i]);
         }
     }
 }
 
-void destroyTruthTable(TruthTable *truthTable) {
-    free(truthTable->elements);
-    free(truthTable);
+void destroyTruthTable(TruthTable *tt) {
+    free(tt->elements);
+    free(tt);
 }
 
-Partition *initPartition(size_t dimension) {
+Partition *initPartition(size_t n) {
     Partition *partition = malloc(sizeof(Partition));
-    partition->multiplicities = malloc(sizeof(size_t) * dimension);
-    partition->bucketSizes = malloc(sizeof(size_t) * dimension);
-    partition->buckets = malloc(sizeof(size_t **) * dimension);
+    partition->multiplicities = malloc(sizeof(size_t) * n); // Malloc n lists
+    partition->bucketSizes = malloc(sizeof(size_t) * n); // Malloc n lists
+    partition->buckets = malloc(sizeof(size_t **) * n); // Malloc n lists of bucket lists.
     partition->numBuckets = 0;
 }
 
-void printPartition(Partition *partition) {
+void printPartitionBuckets(Partition *partition) {
     for (int i = 0; i < partition->numBuckets; ++i) {
         for (int j = 0; j < partition->bucketSizes[i]; ++j) {
             if (j == partition->bucketSizes[i] - 1) {
@@ -59,12 +165,12 @@ void printPartition(Partition *partition) {
     printf("\n");
 }
 
-Partition *partitionTt(TruthTable *truthTable) {
-    size_t dimension = truthTable->dimension;
+Partition *partitionTt(TruthTable *tt) {
+    size_t dimension = tt->n;
     size_t *multiplicities = malloc(sizeof(size_t) * 1L << dimension);
     Partition *partition = initPartition(dimension);
     memset(multiplicities, 0, sizeof (size_t) * 1L << dimension);
-    calculateMultiplicities(truthTable, multiplicities);
+    countElements(tt, multiplicities);
 
     for (int i = 0; i < 1L << dimension; ++i) {
         size_t numBuckets = partition->numBuckets; // init value = 0
@@ -75,17 +181,18 @@ Partition *partitionTt(TruthTable *truthTable) {
         for (int b = 0; b < numBuckets; ++b) {
             if (partition->multiplicities[b] == multiplicity) {
                 multiplicityIsInBucket = true;
-                partition->buckets[b][partition->bucketSizes[b]] = i;
+                size_t thisBucket = partition->bucketSizes[b];
+                partition->buckets[b][thisBucket] = i; // Add the element to the correct bucket
                 partition->bucketSizes[b] += 1;
                 break;
             }
         }
         if (!multiplicityIsInBucket) {
-            // Add a new bucket to the buckets list
-            partition->buckets[numBuckets] = malloc(sizeof(size_t) * 1L << dimension);
-            partition->bucketSizes[numBuckets] = 1;
-            partition->multiplicities[numBuckets] = multiplicity;
-            partition->buckets[numBuckets][0] = i;
+            // The current multiplicity is not in the lists; add a new bucket to the buckets list
+            partition->buckets[numBuckets] = malloc(sizeof(size_t) * 1L << dimension); // Allocate memory for a new bucket list
+            partition->bucketSizes[numBuckets] = 1; // Increase the number of buckets by 1
+            partition->multiplicities[numBuckets] = multiplicity; // Add the multiplicity of the new bucket
+            partition->buckets[numBuckets][0] = i; // Add the element that belongs to this bucket
             partition->numBuckets += 1;
         }
     }
@@ -165,17 +272,13 @@ BucketsMap *initBucketsMap() {
 
 void destroyBucketsMap(BucketsMap *bucketsMap) {
     for (int i = 0; i < bucketsMap->numOfMappings; ++i) {
-        free(bucketsMap->domains[i]);
+        free(bucketsMap->mappings[i]);
     }
     if (bucketsMap->numOfMappings != 0) {
-        free(bucketsMap->domains);
+        free(bucketsMap->mappings);
     }
     free(bucketsMap);
 }
-
-/*
- * Truth Table Node for Linked list
- */
 
 TtNode *initTtNode() {
     TtNode *newNode = malloc(sizeof(TtNode));
@@ -185,7 +288,7 @@ TtNode *initTtNode() {
 }
 
 void addTtNode(TtNode *head, TruthTable *data) {
-    size_t dimension = data->dimension;
+    size_t dimension = data->n;
     if (head->data == NULL) {
         head->data = initTruthTable(dimension);
         memcpy(head->data->elements, data->elements, sizeof(size_t) * 1L << dimension);
