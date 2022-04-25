@@ -32,22 +32,23 @@ void printHelp();
 
 int main(int argc, char *argv[]) {
     char *filename; // Filepath for the function F
-    char *writePath; // Path to file for writing the results
+    char *writePath = NULL; // Path to file for writing the results
     size_t n; // Working n
     size_t *basis; // List of the standard basis, {b_1, ..., b_n}
 
     // Check for flags
-    printf("%d\n", argc);
     if (argc < 2) {
         printHelp();
+        return 0;
     }
     // Loop over the arguments given
     filename = argv[argc - 1];
-    for (int i = 1; i < argc - 1; ++i) {
+    for (int i = 1; i < argc; ++i) {
         if (argv[i][0] == '-') {
             switch (argv[i][1]) {
                 case 'h':
                     printHelp();
+                    return 0;
                 case 'w':
                     i++;
                     writePath = argv[i];
@@ -159,13 +160,13 @@ int main(int argc, char *argv[]) {
 
 void printHelp() {
     printf("Affine\n");
-    printf("Usage: affine.out [affine_options] [filename]\n");
+    printf("Usage: affine [affine_options] [filename]\n");
     printf("Affine_options:\n");
-    printf("\t-h \t- Print help");
-    printf("\t-w \t- The root filename where the results should be written to");
+    printf("\t-h \t- Print help\n");
+    printf("\t-w \t- The root filename where the results should be written to\n");
     printf("\n");
-    printf("\tfilename = the root filename of function F");
-    printf("-h override all other options.");
+    printf("\tfilename = the root filename of function F\n");
+    printf("\t-h override all other options\n");
 }
 
 void addConstant(TruthTable *F, size_t c) {
