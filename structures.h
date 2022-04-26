@@ -81,7 +81,7 @@ void printTruthTable(TruthTable *tt);
  * @param tt The pointer to the truth table to write to a file
  * @param filepath The FILE to write to
  */
-void writeTruthTable(TruthTable *tt, FILE *filepath);
+void writeTruthTable(FILE *filepath, TruthTable *tt);
 
 /**
  * Free the memory that is allocated for the struct TruthTable

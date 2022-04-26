@@ -129,7 +129,7 @@ void printTruthTable(TruthTable *tt) {
     printf("\n");
 }
 
-void writeTruthTable(TruthTable *tt, FILE *filepath) {
+void writeTruthTable(FILE *filepath, TruthTable *tt) {
     for (int i = 0; i < 1L << tt->n; ++i) {
         if (i < (1L << tt->n) - 1) {
             fprintf(filepath, "%zu ", tt->elements[i]);

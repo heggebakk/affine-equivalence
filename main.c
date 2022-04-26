@@ -37,7 +37,6 @@ int main(int argc, char *argv[]) {
     size_t *basis; // List of the standard basis, {b_1, ..., b_n}
 
     // Check for flags
-    printf("%d\n", argc);
     if (argc < 2) {
         printHelp();
     }
@@ -60,15 +59,15 @@ int main(int argc, char *argv[]) {
     }
     FILE *fp = fopen(writePath, "w+");
     fprintf(fp, "%s\n", filename); // Write the filename of the function F
-    TruthTable *functionF1 = parseFile(filename); // Parsed truth table of function F
-    TruthTable *functionG1 = createTruthTable(functionF1); // Create a random function G with respect to F
-    TruthTable *orthoderivativeF = orthoderivative(functionF1);
-    TruthTable *orthoderivativeG = orthoderivative(functionG1);
+    TruthTable *functionF = parseFile(filename); // Parsed truth table of function F
+    TruthTable *functionG = createTruthTable(functionF); // Create a random function G with respect to F
+    TruthTable *orthoderivativeF = orthoderivative(functionF);
+    TruthTable *orthoderivativeG = orthoderivative(functionG);
 
     printf("Function F:\n");
-    printTruthTable(functionF1);
+    printTruthTable(functionF);
     printf("Function G:\n");
-    printTruthTable(functionG1);
+    printTruthTable(functionG);
     printf("Orthoderivatives F & G:\n");
     printTruthTable(orthoderivativeF);
     printTruthTable(orthoderivativeG);
@@ -102,28 +101,34 @@ int main(int argc, char *argv[]) {
                 if (innerPermutation(orthoderivativeF, GPrime, basis, A2, fp)) {
                     foundSolution = true;
 
-                    printf("Constant c1: %zu\n", c1);
-                    fprintf(fp, "Constant c1: %zu\n", c1);
                     printf("A1: \n");
                     fprintf(fp, "A1:\n");
-                    printTruthTable(currentA1);
-                    writeTruthTable(currentA1, fp);
+                    printTruthTable(A1Inverse);
+                    writeTruthTable(fp, currentA1);
                     printf("A2:\n");
                     fprintf(fp, "A2:\n");
                     printTruthTable(A2);
-                    writeTruthTable(A2, fp);
+                    writeTruthTable(fp, A2);
 
                     /* At this point, we know (A1,A2) linear s.t. A1 * orthoderivativeF * A2 = orthoderivativeG
-		            *
 		            * If A1 * F * A2 + A = G for the actual functions F and G (as opposed to the ODs),
 		            * then A1 = A1Inverse, and A2 = A2
 		            */
-                    TruthTable *fComposeA2 = compose(functionF1, A2); // F * A2
+                    TruthTable *fComposeA2 = compose(functionF, A2); // F * A2
                     TruthTable *A = compose(A1Inverse, fComposeA2); // A1Inverse * F * A2
-                    add(A, functionG1); // A1Inverse * F * A2 + G = A
-                    printf("A:\n");
-                    printTruthTable(A);
-                    printf("A is affine %s\n", isAffine(A) ? "True" : "False");
+                    add(A, functionG); // A1Inverse * F * A2 + G = A
+                    fprintf(fp, "A:\n");
+                    writeTruthTable(fp, A);
+                    fprintf(fp, "A is affine %s\n", isAffine(A) ? "True" : "False");
+
+                    // Check if L1 * F * L2 + A = G
+                    TruthTable *FoL2 = compose(functionF, A2);
+                    TruthTable *L1oFoL2 = compose(A1Inverse, FoL2);
+                    add(L1oFoL2, A);
+                    printf("L1 * F * L2 + A = \n");
+                    printTruthTable(L1oFoL2);
+                    printf("G =\n");
+                    printTruthTable(functionG);
 
                     destroyTruthTable(fComposeA2);
                     destroyTruthTable(A);
@@ -145,8 +150,8 @@ int main(int argc, char *argv[]) {
         if (foundSolution) break;
     }
 
-    destroyTruthTable(functionF1);
-    destroyTruthTable(functionG1);
+    destroyTruthTable(functionF);
+    destroyTruthTable(functionG);
     destroyTruthTable(orthoderivativeF);
     destroyTruthTable(orthoderivativeG);
     destroyPartition(partitionF);
