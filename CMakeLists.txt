@@ -3,4 +3,4 @@ project(affine C)
 
 set(CMAKE_C_STANDARD 11)
 
-add_executable(affine main.c structures.c structures.h affine.c affine.h orthoderivative.c orthoderivative.h adjoint.c adjoint.h)
+add_executable(affine src/main.c src/structures.c src/structures.h src/affine.c src/affine.h src/orthoderivative.c src/orthoderivative.h src/adjoint.c src/adjoint.h)
