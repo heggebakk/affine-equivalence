@@ -11,11 +11,13 @@ Flags:
 Affine
 Usage: affine [affine_options] [filename]
 Affine_options:
-        -h      - Print help
-        -w      - The root filename where the results should be written to
+	-a 	- Set this if you want to find the affine function A.
+	-g 	- The root filename where the function G is found.	If not given, the program will compute a random G with respect to F.
+	-h 	- Print help
+	-w 	- The root filename where the results should be written to
 
-        filename = the root filename of function F
-        -h override all other options
+	filename = the root filename of function F
+	-h override all other options
 ```
 
 Example:
@@ -29,3 +31,4 @@ The `function F` is expected to be on the format:
 0 1 8 15 27 14 35 48 53 39 43 63 47 41 1 1 41 15 15 47 52 6 34 22 20 33 36 23 8 41 8 47 36 52 35 53 35 39 20 22 33 34 48 53 39 48 6 23 22 33 63 14 23 52 14 43 27 63 36 6 27 43 20 34 
 ```
 This function is the GF(6), where the first line is the dimension of the function, and the second line is all the elements of the truth table.
+
