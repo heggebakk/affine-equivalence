@@ -1,5 +1,0 @@
-../ea-equivalence/resources/TT_library/dim6/q_6_8.tt
-Constant c2: 0
-Constant c1: 0
-Affine function:
-0 44 41 5 13 33 36 8 58 22 19 63 55 27 30 50 43 7 2 46 38 10 15 35 17 61 56 20 28 48 53 25 51 31 26 54 62 18 23 59 9 37 32 12 4 40 45 1 24 52 49 29 21 57 60 16 34 14 11 39 47 3 6 42
