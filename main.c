@@ -32,7 +32,8 @@ void checkFlags(char *filename, char *writePath, int argc, char *argv[]);
 void printHelp();
 
 int main(int argc, char *argv[]) {
-    char *filename; // Filepath for the function F
+    char *pathF; // Filepath for the function F
+    char *pathG = NULL; // Filepath for hte function G
     char *writePath = NULL; // Path to file for writing the results
     size_t n; // Working n
     size_t *basis; // List of the standard basis, {b_1, ..., b_n}
@@ -44,7 +45,7 @@ int main(int argc, char *argv[]) {
         return 0;
     }
     // Loop over the arguments given
-    filename = argv[argc - 1];
+    pathF = argv[argc - 1];
     for (int i = 1; i < argc; ++i) {
         if (argv[i][0] == '-') {
             switch (argv[i][1]) {
@@ -54,33 +55,45 @@ int main(int argc, char *argv[]) {
                 case 'h':
                     printHelp();
                     return 0;
+                case 'g':
+                    i++;
+                    pathG = argv[i];
+                    continue;
                 case 'w':
                     i++;
                     writePath = argv[i];
+                    continue;
             }
         }
     }
     if (writePath == NULL) {
-        // If the user have not sent in a filename to write to, we create a default file
+        // If the user have not sent in a pathF to write to, we create a default file
         writePath = "results.txt";
     }
     FILE *fp = fopen(writePath, "w+");
-    fprintf(fp, "%s\n", filename); // Write the filename of the function F
+    fprintf(fp, "%s\n", pathF); // Write the pathF of the function F
     // L1 and L2 are the linear functions from the creation of a random G with respect to F
-    TruthTable *functionF = parseFile(filename); // Parsed truth table of function F
+    TruthTable *functionF = parseFile(pathF); // Parsed truth table of function F
+    TruthTable *functionG;
+    TruthTable *L1; // Only initialized if we want to find A
+    TruthTable *L2; // Only initialized if we want to find A
     n = functionF->n;
-    TruthTable *L1 = initTruthTable(n);
-    TruthTable *L2 = initTruthTable(n);
-    TruthTable *functionG = createTruthTable(functionF, fp, L1, L2); // Create a random function G with respect to F
-    TruthTable *orthoderivativeF = orthoderivative(functionF);
-    TruthTable *orthoderivativeG = orthoderivative(functionG);
+    if (pathG) {
+        functionG = parseFile(pathG);
+    } else {
+        L1 = initTruthTable(n);
+        L2 = initTruthTable(n);
+        functionG = createTruthTable(functionF, fp, L1, L2); // Create a random function G with respect to F
+    }
+    TruthTable *orthoderivativeF = orthoderivative(functionF); // The orthoderivative of F
+    TruthTable *orthoderivativeG = orthoderivative(functionG); // The orthoderivative of G
 
-    Partition *partitionF = partitionTt(orthoderivativeF);
-    basis = createStandardBasis(n); // Basis {b_1, ..., b_n}
+    Partition *partitionF = partitionTt(orthoderivativeF); // The partition of the orthoderivative of F
+    basis = createStandardBasis(n); // Basis {b_1, ..., b_n}, here we use the standard basis.
 
     // Need to test for all possible constants, 0..2^n - 1.
+    _Bool foundSolution = false; /* for breaking out of nested loops */
     for (size_t c1 = 0; c1 < 1L << n; ++c1) {
-        _Bool foundSolution = false; /* for breaking out of nested loops */
         TruthTable *G = initTruthTable(n); // G' = orthoderivativeG + c_1
         memcpy(G->elements, orthoderivativeG->elements, sizeof(size_t) * 1L << n);
         addConstant(G, c1); // Add the constant c1 to G: G' = G + c_1
@@ -102,7 +115,7 @@ int main(int argc, char *argv[]) {
 
                 if (innerPermutation(orthoderivativeF, GPrime, basis, A2, fp)) {
                     /* At this point, we know (A1,A2) linear s.t. A1 * orthoderivativeF * A2 = orthoderivativeG */
-                    // We dont want to print out all the A1, A2 if the user looks for A
+                    // We don't want to print out all the A1, A2 if the user looks for A
                     if (!computeAffineA) {
                         foundSolution = true;
                         fprintf(fp, "A1:\n");
@@ -173,6 +186,7 @@ void printHelp() {
     printf("Usage: affine [affine_options] [filename]\n");
     printf("Affine_options:\n");
     printf("\t-a \t- Set this if you want to find the affine function A.\n");
+    printf("\t-g \t- The root filename where the function G is found.\tIf not given, the program will compute a random G with respect to F.\n");
     printf("\t-h \t- Print help\n");
     printf("\t-w \t- The root filename where the results should be written to\n");
     printf("\n");
