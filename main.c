@@ -75,19 +75,6 @@ int main(int argc, char *argv[]) {
     TruthTable *orthoderivativeF = orthoderivative(functionF);
     TruthTable *orthoderivativeG = orthoderivative(functionG);
 
-    fprintf(fp, "Function F:\n");
-    writeTruthTable(fp, functionF);
-    fprintf(fp, "Function G:\n");
-    writeTruthTable(fp, functionG);
-    fprintf(fp, "L1:\n");
-    writeTruthTable(fp, L1);
-    fprintf(fp, "L2:\n");
-    writeTruthTable(fp, L2);
-    fprintf(fp,"Orthoderivative G:\n");
-    writeTruthTable(fp, orthoderivativeF);
-    fprintf(fp,"Orthoderivative G:\n");
-    writeTruthTable(fp, orthoderivativeG);
-
     Partition *partitionF = partitionTt(orthoderivativeF);
     basis = createStandardBasis(n); // Basis {b_1, ..., b_n}
 
@@ -115,9 +102,9 @@ int main(int argc, char *argv[]) {
 
                 if (innerPermutation(orthoderivativeF, GPrime, basis, A2, fp)) {
                     /* At this point, we know (A1,A2) linear s.t. A1 * orthoderivativeF * A2 = orthoderivativeG */
-                    foundSolution = true;
                     // We dont want to print out all the A1, A2 if the user looks for A
                     if (!computeAffineA) {
+                        foundSolution = true;
                         fprintf(fp, "A1:\n");
                         writeTruthTable(fp, currentA1);
                         fprintf(fp, "A2:\n");
@@ -129,8 +116,6 @@ int main(int argc, char *argv[]) {
                     else {
                         /* If L1 * F * L2 + A = G for the actual functions F and G (as opposed to the ODs),
                         * then A1 = A1Inverse, and A2 = A2 */
-
-                        foundSolution = false;
                         TruthTable * A1Adjoint = adjoint(currentA1); // The adjoint of A1
                         TruthTable *A1AdjointInverse = inverse(A1Adjoint); // The inverse of the adjoint of A1 = L1
                         destroyTruthTable(A1Adjoint);
