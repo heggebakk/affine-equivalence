@@ -48,13 +48,8 @@ Example finding `A` for a function `F`
 ### Results
 The result is written to a file set by the flag `-w`(results.txt by default).
 
-If testing two functions `F` and `G`, and we get
-<img src="https://latex.codecogs.com/svg.latex?A_{1} \circ \pi_{F} \circ A_{2} = \pi_{G}" title="A1 compose orhoderivative F compose A2 = orthoderivative G"/>
-the program will give the two functions
-<img src="https://latex.codecogs.com/svg.latex?A_{1}, A{2}" title="A1 and A2"/>. 
+If testing two functions `F` and `G`, and we get `A1 * orthoderivative F * A2 = orthoderivative G` the program will give the two functions `A1` and `A2`.
 If the file is empty, no such relation was found.
 
-If trying to find  
-<img src="https://latex.codecogs.com/svg.latex?A" title="A"/> where
-<img src="https://latex.codecogs.com/svg.latex?A_{1} \circ F \circ A_{2} + A = G" title="A1 compose F compose A2 + A = G"/> the program will give the function
-<img src="https://latex.codecogs.com/svg.latex?A" title="A"/>.
+If trying to find `A` where `A1 * F * A2 + A = G`,
+the program will give the function `A`
