@@ -105,33 +105,26 @@ int main(int argc, char *argv[]) {
                 if (innerPermutation(orthoderivativeF, GPrime, basis, A2, fp)) {
                     foundSolution = true;
 
-//                    printf("Constant c1: %zu\n", c1);
-//                    fprintf(fp, "Constant c1: %zu\n", c1);
-//                    printf("A1: \n");
                     fprintf(fp, "A1:\n");
-//                    printTruthTable(currentA1);
                     writeTruthTable(fp, currentA1);
-//                    printf("A2:\n");
                     fprintf(fp, "A2:\n");
-//                    printTruthTable(A2);
                     writeTruthTable(fp, A2);
 
                     /* At this point, we know (A1,A2) linear s.t. A1 * orthoderivativeF * A2 = orthoderivativeG
 		            *
-		            * If A1 * F * A2 + A = G for the actual functions F and G (as opposed to the ODs),
+		            * If L1 * F * L2 + A = G for the actual functions F and G (as opposed to the ODs),
 		            * then A1 = A1Inverse, and A2 = A2
 		            */
-                    TruthTable *fComposeA2 = compose(functionF, A2); // F * A2
-                    TruthTable *A = compose(A1Inverse, fComposeA2); // A1Inverse * F * A2
-                    add(A, functionG); // A1Inverse * F * A2 + G = A
+                    TruthTable * adjointTT = adjoint(A1Inverse); // The adjoint of A1
 
-		            TruthTable * adjointTT = adjoint(A1Inverse);
-		            printf("This is A1:\n");
-		            printTruthTable(A1Inverse);
-                    if(adjointTT) {
-                        printTruthTable(adjointTT);
-		            }
-		            printf("Is it really adjoint? %s\n", is_it_really_adjoint(A1Inverse, adjointTT) ? "True" : "False");
+                    TruthTable *fComposeA2 = compose(functionF, A2); // F * A2
+                    TruthTable *A = compose(adjointTT, fComposeA2); // L*Inverse * F * A2
+                    add(A, functionG); // L*Inverse * F * A2 + G = A
+
+//                    if(adjointTT) {
+//                        printTruthTable(adjointTT);
+//		            }
+//		            printf("Is it really adjoint? %s\n", is_it_really_adjoint(A1Inverse, adjointTT) ? "True" : "False");
 
                     add(A, functionG); // A1Inverse * F * A2 + G = A
                     fprintf(fp, "A:\n");
@@ -140,6 +133,7 @@ int main(int argc, char *argv[]) {
 
                     destroyTruthTable(fComposeA2);
                     destroyTruthTable(A);
+                    destroyTruthTable(adjointTT);
                 }
                 destroyTruthTable(A1Inverse);
                 destroyTruthTable(GPrime);

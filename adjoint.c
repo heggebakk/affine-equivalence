@@ -67,12 +67,14 @@ TruthTable * recursive_adjoint(TruthTable * L, TruthTable * La, _Bool * assigned
     return 0;
 }
 
-TruthTable * adjoint(TruthTable * L) {
+TruthTable *adjoint(TruthTable *L) {
     size_t n = L->n;
-    TruthTable * La = initTruthTable(n);
-    La->elements[0] = 0;
-    _Bool * assigned_elements = calloc( sizeof(_Bool), (1L << n) );
+    TruthTable *LAdjoint = initTruthTable(n);
+    LAdjoint->elements[0] = 0;
+    _Bool *assigned_elements = calloc(sizeof(_Bool), 1L << n);
     assigned_elements[0] = true;
-    return recursive_adjoint(L, La, assigned_elements, 0, n);
+    TruthTable *adjointTt = recursive_adjoint(L, LAdjoint, assigned_elements, 0, n);
+    free(assigned_elements);
+    return adjointTt;
 }
 
