@@ -62,7 +62,7 @@ int main(int argc, char *argv[]) {
     FILE *fp = fopen(writePath, "w+");
     fprintf(fp, "%s\n", filename); // Write the filename of the function F
     TruthTable *functionF = parseFile(filename); // Parsed truth table of function F
-    TruthTable *functionG = createTruthTable(functionF); // Create a random function G with respect to F
+    TruthTable *functionG = createTruthTable(functionF, fp); // Create a random function G with respect to F
     TruthTable *orthoderivativeF = orthoderivative(functionF);
     TruthTable *orthoderivativeG = orthoderivative(functionG);
 
@@ -103,16 +103,16 @@ int main(int argc, char *argv[]) {
                 if (innerPermutation(orthoderivativeF, GPrime, basis, A2, fp)) {
                     foundSolution = true;
 
-                    printf("Constant c1: %zu\n", c1);
-                    fprintf(fp, "Constant c1: %zu\n", c1);
+//                    printf("Constant c1: %zu\n", c1);
+//                    fprintf(fp, "Constant c1: %zu\n", c1);
                     printf("A1: \n");
                     fprintf(fp, "A1:\n");
                     printTruthTable(currentA1);
-                    writeTruthTable(currentA1, fp);
+                    writeTruthTable(fp, currentA1);
                     printf("A2:\n");
                     fprintf(fp, "A2:\n");
                     printTruthTable(A2);
-                    writeTruthTable(A2, fp);
+                    writeTruthTable(fp, A2);
 
                     /* At this point, we know (A1,A2) linear s.t. A1 * orthoderivativeF * A2 = orthoderivativeG
 		            *
@@ -133,17 +133,17 @@ int main(int argc, char *argv[]) {
                 destroyTruthTable(GPrime);
                 destroyTruthTable(A2);
 
-                if (foundSolution) break;
+//                if (foundSolution) break;
             }
             destroyTtNode(A1);
 
-            if (foundSolution) break;
+//            if (foundSolution) break;
         }
         destroyTruthTable(G);
         destroyBucketsMap(bucketsMap);
         destroyPartition(partitionG);
 
-        if (foundSolution) break;
+//        if (foundSolution) break;
     }
 
     destroyTruthTable(functionF);

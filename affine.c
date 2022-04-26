@@ -347,8 +347,8 @@ bool innerPermutation(TruthTable *F, TruthTable *G, const size_t *basis, TruthTa
 
             /* If everything went smoothly, we should have aPrime == G */
             TruthTable *aPrime = compose(F, L2);
-            printf("Constant c2: %zu\n", c2);
-            fprintf(fp, "Constant c2: %zu\n", c2);
+//            printf("Constant c2: %zu\n", c2);
+//            fprintf(fp, "Constant c2: %zu\n", c2);
 
             destroyTruthTable(aPrime);
             destroyTruthTable(newG);

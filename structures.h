@@ -59,16 +59,19 @@ TruthTable *randomAffineFunction(size_t n);
 /**
  * Create a random affine permutation with 2^n elements
  * @param n The dimension
+ * @param fp File with write access
  * @return A new random Affine permutation
  */
-TruthTable *randomAffinePermutation(size_t n);
+TruthTable *randomAffinePermutation(size_t n, FILE *fp);
 
 /**
  * Create a new truth table with respect to a function F
+ * Writes the two linear function L1 and L2 from the construction of randomAffinePermutation
  * @param f The function F
+ * @param fp Path to file with write access
  * @return A new function
  */
-TruthTable *createTruthTable(TruthTable *f);
+TruthTable *createTruthTable(TruthTable *f, FILE *fp);
 
 /**
  * Print all the elements of the TruthTable to the console
@@ -81,7 +84,7 @@ void printTruthTable(TruthTable *tt);
  * @param tt The pointer to the truth table to write to a file
  * @param filepath The FILE to write to
  */
-void writeTruthTable(TruthTable *tt, FILE *filepath);
+void writeTruthTable(FILE *filepath, TruthTable *tt);
 
 /**
  * Free the memory that is allocated for the struct TruthTable
