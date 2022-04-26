@@ -1,3 +1,4 @@
+#include "adjoint.h"
 #include "structures.h"
 #include "affine.h"
 #include "orthoderivative.h"
@@ -121,6 +122,16 @@ int main(int argc, char *argv[]) {
 		            */
                     TruthTable *fComposeA2 = compose(functionF, A2); // F * A2
                     TruthTable *A = compose(A1Inverse, fComposeA2); // A1Inverse * F * A2
+                    add(A, functionG); // A1Inverse * F * A2 + G = A
+
+		            TruthTable * adjointTT = adjoint(A1Inverse);
+		            printf("This is A1:\n");
+		            printTruthTable(A1Inverse);
+                    if(adjointTT) {
+                        printTruthTable(adjointTT);
+		            }
+		            printf("Is it really adjoint? %s\n", is_it_really_adjoint(A1Inverse, adjointTT) ? "True" : "False");
+
                     add(A, functionG); // A1Inverse * F * A2 + G = A
                     printf("A:\n");
                     printTruthTable(A);
