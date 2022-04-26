@@ -2,12 +2,11 @@
 # Visit https://bit.ly/cffinit to generate yours today!
 
 cff-version: 1.2.0
-title: Testing Affine functions
-message: >-
-  If you use this software, please cite it using the
-  metadata from this file.
-type: software
+title: "Testing Affine functions"
+message: "If you use this software, please cite it using the metadata from this file."
+type: "software"
 authors:
-  - family-names: Heggebakk
-    given-names: Marie
-url: 'https://github.com/heggebakk/affine'
+  - family-names: "Heggebakk"
+    given-names: "Marie"
+    orcid: "https://orcid.org/0000-0003-4553-4711"
+url: "https://github.com/heggebakk/affine"
