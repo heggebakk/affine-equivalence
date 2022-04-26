@@ -4,6 +4,18 @@ _Bool dot(size_t a, size_t b) {
     return __builtin_popcountl(a & b) % 2;
 }
 
+_Bool is_it_really_adjoint(TruthTable * L, TruthTable *La) {
+  size_t n = L->n;
+  for(size_t x = 0; x < (1L << n); ++x) {
+    for(size_t y = 0; y < (1L << n); ++y) {
+      if (dot(L->elements[x],y) != dot(x,La->elements[y])) {
+	return false;
+      }
+    }
+  }
+  return true;
+}
+
 TruthTable * recursive_adjoint(TruthTable * L, TruthTable * La, _Bool * assigned_elements, size_t i, size_t n) {
   printf("Entering stage number %lu\n", i);
   printf("Previously assigned: %lu -> %lu\n", i-1, La->elements[(1L << (i-1))]);

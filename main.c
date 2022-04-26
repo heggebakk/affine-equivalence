@@ -128,6 +128,7 @@ int main(int argc, char *argv[]) {
 		    if(adjointTT) {
 		      printTruthTable(adjointTT);
 		    }
+		    printf("Is it really adjoint? %s\n", is_it_really_adjoint(A1Inverse, adjointTT) ? "True" : "False");
 
                     add(A, functionG1); // A1Inverse * F * A2 + G = A
                     printf("A:\n");
