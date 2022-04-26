@@ -141,6 +141,7 @@ int main(int argc, char *argv[]) {
                     destroyTruthTable(fComposeL2);
                     destroyTruthTable(A);
                     destroyTruthTable(L1Adjoint);
+                    destroyTruthTable(L1Inverse);
                 }
                 destroyTruthTable(A1Inverse);
                 destroyTruthTable(GPrime);
@@ -162,6 +163,8 @@ int main(int argc, char *argv[]) {
     printf("Results found in \"%s\"\n", writePath);
     destroyTruthTable(functionF);
     destroyTruthTable(functionG);
+    destroyTruthTable(L1);
+    destroyTruthTable(L2);
     destroyTruthTable(orthoderivativeF);
     destroyTruthTable(orthoderivativeG);
     destroyPartition(partitionF);
