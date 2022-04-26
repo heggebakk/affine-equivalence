@@ -188,7 +188,7 @@ void printHelp() {
     printf("\t-a \t- Set this if you want to find the affine function A.\n");
     printf("\t-g \t- The root filename where the function G is found.\tIf not given, the program will compute a random G with respect to F.\n");
     printf("\t-h \t- Print help\n");
-    printf("\t-w \t- The root filename where the results should be written to\n");
+    printf("\t-w \t- The root filename where the results should be written to, default: \"results.txt\"\n");
     printf("\n");
     printf("\tfilename = the root filename of function F\n");
     printf("\t-h override all other options\n");
