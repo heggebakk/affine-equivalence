@@ -36,6 +36,7 @@ int main(int argc, char *argv[]) {
     char *writePath = NULL; // Path to file for writing the results
     size_t n; // Working n
     size_t *basis; // List of the standard basis, {b_1, ..., b_n}
+    bool computeAffineA = false; // Set to true if the user want to find A
 
     // Check for flags
     if (argc < 2) {
@@ -47,6 +48,9 @@ int main(int argc, char *argv[]) {
     for (int i = 1; i < argc; ++i) {
         if (argv[i][0] == '-') {
             switch (argv[i][1]) {
+                case 'a':
+                    computeAffineA = true;
+                    continue;
                 case 'h':
                     printHelp();
                     return 0;
@@ -110,54 +114,58 @@ int main(int argc, char *argv[]) {
                 A2->elements[0] = 0; // We know that the function is linear => L[0] -> 0
 
                 if (innerPermutation(orthoderivativeF, GPrime, basis, A2, fp)) {
+                    /* At this point, we know (A1,A2) linear s.t. A1 * orthoderivativeF * A2 = orthoderivativeG */
                     foundSolution = true;
+                    // We dont want to print out all the A1, A2 if the user looks for A
+                    if (!computeAffineA) {
+                        fprintf(fp, "A1:\n");
+                        writeTruthTable(fp, currentA1);
+                        fprintf(fp, "A2:\n");
+                        writeTruthTable(fp, A2);
+                    }
 
-                    fprintf(fp, "A1:\n");
-                    writeTruthTable(fp, currentA1);
-                    fprintf(fp, "A2:\n");
-                    writeTruthTable(fp, A2);
-//
-                    /* At this point, we know (A1,A2) linear s.t. A1 * orthoderivativeF * A2 = orthoderivativeG
-		            *
-		            * If L1 * F * L2 + A = G for the actual functions F and G (as opposed to the ODs),
-		            * then A1 = A1Inverse, and A2 = A2
-		            */
-                    TruthTable *L1Inverse = inverse(L1);
-                    TruthTable * L1Adjoint = adjoint(L1Inverse); // The adjoint of L1
+                    /* Now, since the affine function A takes more time to compute, the user can use the flag -a to
+                     * choose to compute A. */
+                    else {
+                        /* If L1 * F * L2 + A = G for the actual functions F and G (as opposed to the ODs),
+                        * then A1 = A1Inverse, and A2 = A2 */
 
-                    TruthTable *fComposeL2 = compose(functionF, L2); // F * L2
-                    TruthTable *A = compose(L1Adjoint, fComposeL2); // L*Inverse * F * L2
-                    add(A, functionG); // L*Inverse * F * A2 + G = A
+                        foundSolution = false;
+                        TruthTable * A1Adjoint = adjoint(currentA1); // The adjoint of A1
+                        TruthTable *A1AdjointInverse = inverse(A1Adjoint); // The inverse of the adjoint of A1 = L1
+                        destroyTruthTable(A1Adjoint);
 
-//                    if(L1Adjoint) {
-//                        printTruthTable(L1Adjoint);
-//		            }
-//		            printf("Is it really adjoint? %s\n", is_it_really_adjoint(A1Inverse, L1Adjoint) ? "True" : "False");
+                        // Now compute L1 * F * L2 + G = A
+                        TruthTable *fComposeL2 = compose(functionF, L2); // F * L2
+                        TruthTable *A = compose(A1AdjointInverse, fComposeL2); // L*Inverse * F * L2
+                        add(A, functionG); // L*Inverse * F * A2 + G = A
+                        // Check if A is affine, if true, write result and quit
+                        if(isAffine(A)) {
+                            foundSolution = true;
+                            fprintf(fp, "A:\n");
+                            writeTruthTable(fp, A);
+                        }
 
-                    fprintf(fp, "A:\n");
-                    writeTruthTable(fp, A);
-                    fprintf(fp, "A is affine %s\n", isAffine(A) ? "True" : "False");
-
-                    destroyTruthTable(fComposeL2);
-                    destroyTruthTable(A);
-                    destroyTruthTable(L1Adjoint);
-                    destroyTruthTable(L1Inverse);
+                        destroyTruthTable(fComposeL2);
+                        destroyTruthTable(A);
+                        destroyTruthTable(A1AdjointInverse);
+                    }
                 }
                 destroyTruthTable(A1Inverse);
                 destroyTruthTable(GPrime);
                 destroyTruthTable(A2);
 
-//                if (foundSolution) break;
+                if (foundSolution) break;
             }
             destroyTtNode(A1);
 
-//            if (foundSolution) break;
+            if (foundSolution) break;
         }
         destroyTruthTable(G);
         destroyBucketsMap(bucketsMap);
         destroyPartition(partitionG);
 
-//        if (foundSolution) break;
+        if (foundSolution) break;
     }
 
     printf("Results found in \"%s\"\n", writePath);
@@ -179,6 +187,7 @@ void printHelp() {
     printf("Affine\n");
     printf("Usage: affine [affine_options] [filename]\n");
     printf("Affine_options:\n");
+    printf("\t-a \t- Set this if you want to find the affine function A.\n");
     printf("\t-h \t- Print help\n");
     printf("\t-w \t- The root filename where the results should be written to\n");
     printf("\n");
