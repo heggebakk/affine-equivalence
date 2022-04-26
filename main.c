@@ -66,13 +66,14 @@ int main(int argc, char *argv[]) {
     TruthTable *orthoderivativeF = orthoderivative(functionF);
     TruthTable *orthoderivativeG = orthoderivative(functionG);
 
-    printf("Function F:\n");
-    printTruthTable(functionF);
-    printf("Function G:\n");
-    printTruthTable(functionG);
-    printf("Orthoderivatives F & G:\n");
-    printTruthTable(orthoderivativeF);
-    printTruthTable(orthoderivativeG);
+    fprintf(fp, "Function F:\n");
+    writeTruthTable(fp, functionF);
+    fprintf(fp, "Function G:\n");
+    writeTruthTable(fp, functionG);
+    fprintf(fp,"Orthoderivative G:\n");
+    writeTruthTable(fp, orthoderivativeF);
+    fprintf(fp,"Orthoderivative G:\n");
+    writeTruthTable(fp, orthoderivativeG);
 
     Partition *partitionF = partitionTt(orthoderivativeF);
     n = orthoderivativeF->n;
@@ -105,13 +106,13 @@ int main(int argc, char *argv[]) {
 
 //                    printf("Constant c1: %zu\n", c1);
 //                    fprintf(fp, "Constant c1: %zu\n", c1);
-                    printf("A1: \n");
+//                    printf("A1: \n");
                     fprintf(fp, "A1:\n");
-                    printTruthTable(currentA1);
+//                    printTruthTable(currentA1);
                     writeTruthTable(fp, currentA1);
-                    printf("A2:\n");
+//                    printf("A2:\n");
                     fprintf(fp, "A2:\n");
-                    printTruthTable(A2);
+//                    printTruthTable(A2);
                     writeTruthTable(fp, A2);
 
                     /* At this point, we know (A1,A2) linear s.t. A1 * orthoderivativeF * A2 = orthoderivativeG
@@ -122,9 +123,9 @@ int main(int argc, char *argv[]) {
                     TruthTable *fComposeA2 = compose(functionF, A2); // F * A2
                     TruthTable *A = compose(A1Inverse, fComposeA2); // A1Inverse * F * A2
                     add(A, functionG); // A1Inverse * F * A2 + G = A
-                    printf("A:\n");
-                    printTruthTable(A);
-                    printf("A is affine %s\n", isAffine(A) ? "True" : "False");
+                    fprintf(fp, "A:\n");
+                    writeTruthTable(fp, A);
+                    fprintf(fp, "A is affine %s\n", isAffine(A) ? "True" : "False");
 
                     destroyTruthTable(fComposeA2);
                     destroyTruthTable(A);
@@ -146,6 +147,7 @@ int main(int argc, char *argv[]) {
 //        if (foundSolution) break;
     }
 
+    printf("Results found in \"%s\"\n", writePath);
     destroyTruthTable(functionF);
     destroyTruthTable(functionG);
     destroyTruthTable(orthoderivativeF);
