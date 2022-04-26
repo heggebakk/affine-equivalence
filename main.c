@@ -32,21 +32,23 @@ void printHelp();
 
 int main(int argc, char *argv[]) {
     char *filename; // Filepath for the function F
-    char *writePath; // Path to file for writing the results
+    char *writePath = NULL; // Path to file for writing the results
     size_t n; // Working n
     size_t *basis; // List of the standard basis, {b_1, ..., b_n}
 
     // Check for flags
     if (argc < 2) {
         printHelp();
+        return 0;
     }
     // Loop over the arguments given
     filename = argv[argc - 1];
-    for (int i = 1; i < argc - 1; ++i) {
+    for (int i = 1; i < argc; ++i) {
         if (argv[i][0] == '-') {
             switch (argv[i][1]) {
                 case 'h':
                     printHelp();
+                    return 0;
                 case 'w':
                     i++;
                     writePath = argv[i];
@@ -101,34 +103,28 @@ int main(int argc, char *argv[]) {
                 if (innerPermutation(orthoderivativeF, GPrime, basis, A2, fp)) {
                     foundSolution = true;
 
+                    printf("Constant c1: %zu\n", c1);
+                    fprintf(fp, "Constant c1: %zu\n", c1);
                     printf("A1: \n");
                     fprintf(fp, "A1:\n");
-                    printTruthTable(A1Inverse);
-                    writeTruthTable(fp, currentA1);
+                    printTruthTable(currentA1);
+                    writeTruthTable(currentA1, fp);
                     printf("A2:\n");
                     fprintf(fp, "A2:\n");
                     printTruthTable(A2);
-                    writeTruthTable(fp, A2);
+                    writeTruthTable(A2, fp);
 
                     /* At this point, we know (A1,A2) linear s.t. A1 * orthoderivativeF * A2 = orthoderivativeG
+		            *
 		            * If A1 * F * A2 + A = G for the actual functions F and G (as opposed to the ODs),
 		            * then A1 = A1Inverse, and A2 = A2
 		            */
                     TruthTable *fComposeA2 = compose(functionF, A2); // F * A2
                     TruthTable *A = compose(A1Inverse, fComposeA2); // A1Inverse * F * A2
                     add(A, functionG); // A1Inverse * F * A2 + G = A
-                    fprintf(fp, "A:\n");
-                    writeTruthTable(fp, A);
-                    fprintf(fp, "A is affine %s\n", isAffine(A) ? "True" : "False");
-
-                    // Check if L1 * F * L2 + A = G
-                    TruthTable *FoL2 = compose(functionF, A2);
-                    TruthTable *L1oFoL2 = compose(A1Inverse, FoL2);
-                    add(L1oFoL2, A);
-                    printf("L1 * F * L2 + A = \n");
-                    printTruthTable(L1oFoL2);
-                    printf("G =\n");
-                    printTruthTable(functionG);
+                    printf("A:\n");
+                    printTruthTable(A);
+                    printf("A is affine %s\n", isAffine(A) ? "True" : "False");
 
                     destroyTruthTable(fComposeA2);
                     destroyTruthTable(A);
@@ -164,13 +160,13 @@ int main(int argc, char *argv[]) {
 
 void printHelp() {
     printf("Affine\n");
-    printf("Usage: affine.out [affine_options] [filename]\n");
+    printf("Usage: affine [affine_options] [filename]\n");
     printf("Affine_options:\n");
-    printf("\t-h \t- Print help");
-    printf("\t-w \t- The root filename where the results should be written to");
+    printf("\t-h \t- Print help\n");
+    printf("\t-w \t- The root filename where the results should be written to\n");
     printf("\n");
-    printf("\tfilename = the root filename of function F");
-    printf("-h override all other options.");
+    printf("\tfilename = the root filename of function F\n");
+    printf("\t-h override all other options\n");
 }
 
 void addConstant(TruthTable *F, size_t c) {
