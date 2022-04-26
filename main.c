@@ -62,8 +62,12 @@ int main(int argc, char *argv[]) {
     }
     FILE *fp = fopen(writePath, "w+");
     fprintf(fp, "%s\n", filename); // Write the filename of the function F
+    // L1 and L2 are the linear functions from the creation of a random G with respect to F
     TruthTable *functionF = parseFile(filename); // Parsed truth table of function F
-    TruthTable *functionG = createTruthTable(functionF, fp); // Create a random function G with respect to F
+    n = functionF->n;
+    TruthTable *L1 = initTruthTable(n);
+    TruthTable *L2 = initTruthTable(n);
+    TruthTable *functionG = createTruthTable(functionF, fp, L1, L2); // Create a random function G with respect to F
     TruthTable *orthoderivativeF = orthoderivative(functionF);
     TruthTable *orthoderivativeG = orthoderivative(functionG);
 
@@ -71,13 +75,16 @@ int main(int argc, char *argv[]) {
     writeTruthTable(fp, functionF);
     fprintf(fp, "Function G:\n");
     writeTruthTable(fp, functionG);
+    fprintf(fp, "L1:\n");
+    writeTruthTable(fp, L1);
+    fprintf(fp, "L2:\n");
+    writeTruthTable(fp, L2);
     fprintf(fp,"Orthoderivative G:\n");
     writeTruthTable(fp, orthoderivativeF);
     fprintf(fp,"Orthoderivative G:\n");
     writeTruthTable(fp, orthoderivativeG);
 
     Partition *partitionF = partitionTt(orthoderivativeF);
-    n = orthoderivativeF->n;
     basis = createStandardBasis(n); // Basis {b_1, ..., b_n}
 
     // Need to test for all possible constants, 0..2^n - 1.
@@ -109,31 +116,31 @@ int main(int argc, char *argv[]) {
                     writeTruthTable(fp, currentA1);
                     fprintf(fp, "A2:\n");
                     writeTruthTable(fp, A2);
-
+//
                     /* At this point, we know (A1,A2) linear s.t. A1 * orthoderivativeF * A2 = orthoderivativeG
 		            *
 		            * If L1 * F * L2 + A = G for the actual functions F and G (as opposed to the ODs),
 		            * then A1 = A1Inverse, and A2 = A2
 		            */
-                    TruthTable * adjointTT = adjoint(A1Inverse); // The adjoint of A1
+                    TruthTable *L1Inverse = inverse(L1);
+                    TruthTable * L1Adjoint = adjoint(L1Inverse); // The adjoint of L1
 
-                    TruthTable *fComposeA2 = compose(functionF, A2); // F * A2
-                    TruthTable *A = compose(adjointTT, fComposeA2); // L*Inverse * F * A2
+                    TruthTable *fComposeL2 = compose(functionF, L2); // F * L2
+                    TruthTable *A = compose(L1Adjoint, fComposeL2); // L*Inverse * F * L2
                     add(A, functionG); // L*Inverse * F * A2 + G = A
 
-//                    if(adjointTT) {
-//                        printTruthTable(adjointTT);
+//                    if(L1Adjoint) {
+//                        printTruthTable(L1Adjoint);
 //		            }
-//		            printf("Is it really adjoint? %s\n", is_it_really_adjoint(A1Inverse, adjointTT) ? "True" : "False");
+//		            printf("Is it really adjoint? %s\n", is_it_really_adjoint(A1Inverse, L1Adjoint) ? "True" : "False");
 
-                    add(A, functionG); // A1Inverse * F * A2 + G = A
                     fprintf(fp, "A:\n");
                     writeTruthTable(fp, A);
                     fprintf(fp, "A is affine %s\n", isAffine(A) ? "True" : "False");
 
-                    destroyTruthTable(fComposeA2);
+                    destroyTruthTable(fComposeL2);
                     destroyTruthTable(A);
-                    destroyTruthTable(adjointTT);
+                    destroyTruthTable(L1Adjoint);
                 }
                 destroyTruthTable(A1Inverse);
                 destroyTruthTable(GPrime);

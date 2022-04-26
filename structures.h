@@ -62,7 +62,7 @@ TruthTable *randomAffineFunction(size_t n);
  * @param fp File with write access
  * @return A new random Affine permutation
  */
-TruthTable *randomAffinePermutation(size_t n, FILE *fp);
+TruthTable *randomAffinePermutation(size_t n, FILE *fp, TruthTable *L);
 
 /**
  * Create a new truth table with respect to a function F
@@ -71,7 +71,7 @@ TruthTable *randomAffinePermutation(size_t n, FILE *fp);
  * @param fp Path to file with write access
  * @return A new function
  */
-TruthTable *createTruthTable(TruthTable *f, FILE *fp);
+TruthTable *createTruthTable(TruthTable *f, FILE *fp, TruthTable *L1, TruthTable *L2);
 
 /**
  * Print all the elements of the TruthTable to the console

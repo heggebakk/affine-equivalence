@@ -58,7 +58,7 @@ TruthTable *randomAffineFunction(size_t n) {
     return newFunction;
 }
 
-TruthTable *randomAffinePermutation(size_t n, FILE *fp) {
+TruthTable *randomAffinePermutation(size_t n, FILE *fp, TruthTable *L) {
     size_t entries = 1L << n;
     bool generated[entries];
     size_t listGenerated[entries];
@@ -80,10 +80,12 @@ TruthTable *randomAffinePermutation(size_t n, FILE *fp) {
             generated[listGenerated[k] ^ j] = true;
         }
     }
+    // Copy the generated list, L1/L2, before we're adding a constant c.
+    memcpy(L->elements, listGenerated, sizeof(size_t) * entries);
+
+    // Add a random constant to the new function, to create an affine function
     TruthTable *newFunction = initTruthTable(n);
     memcpy(newFunction->elements, listGenerated, sizeof(size_t) * entries);
-    // Write the function to the fp file
-    writeTruthTable(fp, newFunction);
     size_t constant = rand() % entries; // A random constant c, where c is in 2^n
     for (int i = 0; i < entries; ++i) {
         newFunction->elements[i] ^= constant; // Add the constant
@@ -91,14 +93,12 @@ TruthTable *randomAffinePermutation(size_t n, FILE *fp) {
     return newFunction;
 }
 
-TruthTable *createTruthTable(TruthTable *f, FILE *fp) {
+TruthTable *createTruthTable(TruthTable *f, FILE *fp, TruthTable *L1, TruthTable *L2) {
     size_t dimension = f->n;
 
     // A1 * F * A2 + A = G
-    fprintf(fp, "L1 from construction of G:\n");
-    TruthTable *A1 = randomAffinePermutation(dimension, fp);
-    fprintf(fp, "L2 from construction of G:\n");
-    TruthTable *A2 = randomAffinePermutation(dimension, fp);
+    TruthTable *A1 = randomAffinePermutation(dimension, fp, L1);
+    TruthTable *A2 = randomAffinePermutation(dimension, fp, L2);
     TruthTable *A = randomAffineFunction(dimension);
 
     TruthTable *FComposeA2 = compose(f, A2);
