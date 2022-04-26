@@ -1,1 +1,1 @@
-gcc -o affine main.c affine.c orthoderivative.c structures.c
+gcc -o affine src/main.c src/affine.c src/orthoderivative.c src/structures.c src/adjoint.c
