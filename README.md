@@ -35,12 +35,12 @@ Example:
 ./affine -w test.txt path/to/functionF
 ```
 
-Example testing two functions `F` and `G` 
+Example testing two functions `F` and `G`:
 ```shell
 ./affine -g path/to/functionG path/to/functionF
 ```
 
-Example finding `A` for a function `F`
+Example finding `A` for a function `F`:
 ```text
 ./affine -a path/to/functionF
 ```
