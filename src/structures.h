@@ -54,24 +54,24 @@ TruthTable * inverse(TruthTable *f);
  * @param n The dimension
  * @return A new random Affine function
  */
-TruthTable *randomAffineFunction(size_t n);
+TruthTable *randomLinearFunction(size_t n);
 
 /**
  * Create a random affine permutation with 2^n elements
  * @param n The dimension
- * @param fp File with write access
  * @return A new random Affine permutation
  */
-TruthTable *randomLinearPermutation(size_t n, FILE *fp, TruthTable *L);
+TruthTable *randomLinearPermutation(size_t n);
 
 /**
  * Create a new truth table with respect to a function F
  * Writes the two linear function L1 and L2 from the construction of randomLinearPermutation
  * @param f The function F
- * @param fp Path to file with write access
- * @return A new function
+ * @param L1 The function L1 constructed before adding a constant to A1 to create the function
+ * @param L2 The function L2 constructed before adding a constant to A2 to create the function
+ * @return A new function with respect to F
  */
-TruthTable *createTruthTable(TruthTable *f, FILE *fp, TruthTable *L1, TruthTable *L2);
+TruthTable *createTruthTable(TruthTable *f, TruthTable *L1, TruthTable *L2);
 
 /**
  * Print all the elements of the TruthTable to the console

@@ -37,7 +37,7 @@ TruthTable *inverse(TruthTable *f) {
     return inverse;
 }
 
-TruthTable *randomAffineFunction(size_t n) {
+TruthTable *randomLinearFunction(size_t n) {
     size_t entries = 1L << n;
     size_t listGenerated[entries];
     listGenerated[0] = 0;
@@ -54,7 +54,7 @@ TruthTable *randomAffineFunction(size_t n) {
     return newFunction;
 }
 
-TruthTable *randomLinearPermutation(size_t n, FILE *fp, TruthTable *L) {
+TruthTable *randomLinearPermutation(size_t n) {
     size_t entries = 1L << n;
     bool generated[entries];
     size_t listGenerated[entries];
@@ -82,14 +82,14 @@ TruthTable *randomLinearPermutation(size_t n, FILE *fp, TruthTable *L) {
     return newFunction;
 }
 
-TruthTable *createTruthTable(TruthTable *f, FILE *fp, TruthTable *L1, TruthTable *L2) {
+TruthTable *createTruthTable(TruthTable *f, TruthTable *L1, TruthTable *L2) {
     size_t n = f->n;
     size_t entries = 1L << n;
 
     // A1 * F * A2 + A = G
-    TruthTable *A1 = randomLinearPermutation(n, fp, L1);
-    TruthTable *A2 = randomLinearPermutation(n, fp, L2);
-    TruthTable *A = randomAffineFunction(n);
+    TruthTable *A1 = randomLinearPermutation(n);
+    TruthTable *A2 = randomLinearPermutation(n);
+    TruthTable *A = randomLinearFunction(n);
     // Copy A1 A2 to L1 L2 before we add random constants to A1 A2 A, to create affine functions.
     memcpy(L1->elements, A1->elements, sizeof(size_t) * entries);
     memcpy(L2->elements, A2->elements, sizeof(size_t) * entries);
