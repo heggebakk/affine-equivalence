@@ -83,7 +83,7 @@ int main(int argc, char *argv[]) {
     } else {
         L1 = initTruthTable(n);
         L2 = initTruthTable(n);
-        functionG = createTruthTable(functionF, fp, L1, L2); // Create a random function G with respect to F
+        functionG = createTruthTable(functionF, L1, L2); // Create a random function G with respect to F
     }
     TruthTable *orthoderivativeF = orthoderivative(functionF); // The orthoderivative of F
     TruthTable *orthoderivativeG = orthoderivative(functionG); // The orthoderivative of G
@@ -113,7 +113,7 @@ int main(int argc, char *argv[]) {
                 TruthTable *A2 = initTruthTable(n);
                 A2->elements[0] = 0; // We know that the function is linear => L[0] -> 0
 
-                if (innerPermutation(orthoderivativeF, GPrime, basis, A2, fp)) {
+                if (innerPermutation(orthoderivativeF, GPrime, basis, A2)) {
                     /* At this point, we know (A1,A2) linear s.t. A1 * orthoderivativeF * A2 = orthoderivativeG */
                     // We don't want to print out all the A1, A2 if the user looks for A
                     if (!computeAffineA) {
@@ -166,7 +166,7 @@ int main(int argc, char *argv[]) {
         if (foundSolution) break;
     }
 
-    printf("Results found in \"%s\"\n", writePath);
+//    printf("Results found in \"%s\"\n", writePath);
     destroyTruthTable(functionF);
     destroyTruthTable(functionG);
     destroyTruthTable(L1);

@@ -117,10 +117,9 @@ Node *computeRestrictedDomains(TruthTable *F, const bool *map);
  * @param G The truth table of function G
  * @param basis A basis {b_1, ..., b_n}
  * @param L2 The inner permutation
- * @param fp File to write the results to
  * @return Returns True if reconstruction of L2 was successful, False otherwise
  */
-bool innerPermutation(TruthTable *F, TruthTable *G, const size_t *basis, TruthTable *L2, FILE *fp);
+bool innerPermutation(TruthTable *F, TruthTable *G, const size_t *basis, TruthTable *L2);
 
 /**
  * A dept first search to reconstruct the inner permutation L2.

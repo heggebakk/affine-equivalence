@@ -308,7 +308,7 @@ Node *computeRestrictedDomains(TruthTable *F, const bool *map) {
     return domainResult;
 }
 
-bool innerPermutation(TruthTable *F, TruthTable *G, const size_t *basis, TruthTable *L2, FILE *fp) {
+bool innerPermutation(TruthTable *F, TruthTable *G, const size_t *basis, TruthTable *L2) {
     size_t dimension = F->n;
     Node **restrictedDomains = malloc(sizeof(Node **) * (dimension + 1));
     bool result;
