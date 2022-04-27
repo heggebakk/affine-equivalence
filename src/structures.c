@@ -51,14 +51,10 @@ TruthTable *randomAffineFunction(size_t n) {
     }
     TruthTable *newFunction = initTruthTable(n);
     memcpy(newFunction->elements, listGenerated, sizeof(size_t) * entries);
-    size_t constant = rand() % entries; // A random constant c, where c is in 2^n
-    for (int i = 0; i < entries; ++i) {
-        newFunction->elements[i] ^= constant; // Add the constant
-    }
     return newFunction;
 }
 
-TruthTable *randomAffinePermutation(size_t n, FILE *fp, TruthTable *L) {
+TruthTable *randomLinearPermutation(size_t n, FILE *fp, TruthTable *L) {
     size_t entries = 1L << n;
     bool generated[entries];
     size_t listGenerated[entries];
@@ -80,39 +76,38 @@ TruthTable *randomAffinePermutation(size_t n, FILE *fp, TruthTable *L) {
             generated[listGenerated[k] ^ j] = true;
         }
     }
-    // Copy the generated list, L1/L2, before we're adding a constant c.
-    memcpy(L->elements, listGenerated, sizeof(size_t) * entries);
-
     // Add a random constant to the new function, to create an affine function
     TruthTable *newFunction = initTruthTable(n);
     memcpy(newFunction->elements, listGenerated, sizeof(size_t) * entries);
-    size_t constant = rand() % entries; // A random constant c, where c is in 2^n
-    for (int i = 0; i < entries; ++i) {
-        newFunction->elements[i] ^= constant; // Add the constant
-    }
     return newFunction;
 }
 
 TruthTable *createTruthTable(TruthTable *f, FILE *fp, TruthTable *L1, TruthTable *L2) {
-    size_t dimension = f->n;
+    size_t n = f->n;
+    size_t entries = 1L << n;
 
     // A1 * F * A2 + A = G
-    TruthTable *A1 = randomAffinePermutation(dimension, fp, L1);
-    TruthTable *A2 = randomAffinePermutation(dimension, fp, L2);
-    TruthTable *A = randomAffineFunction(dimension);
+    TruthTable *A1 = randomLinearPermutation(n, fp, L1);
+    TruthTable *A2 = randomLinearPermutation(n, fp, L2);
+    TruthTable *A = randomAffineFunction(n);
+    // Copy A1 A2 to L1 L2 before we add random constants to A1 A2 A, to create affine functions.
+    memcpy(L1->elements, A1->elements, sizeof(size_t) * entries);
+    memcpy(L2->elements, A2->elements, sizeof(size_t) * entries);
+
+    // A random constant c, where c is in 2^n
+    size_t constant1 = rand() % entries;
+    size_t constant2 = rand() % entries;
+    size_t constant3 = rand() % entries;
+    for (int i = 0; i < entries; ++i) {
+        // Add the constant
+        A1->elements[i] ^= constant1;
+        A2->elements[i] ^= constant2;
+        A->elements[i] ^= constant3;
+    }
 
     TruthTable *FComposeA2 = compose(f, A2);
     TruthTable *G = compose(A1, FComposeA2);
     add(G, A);
-
-    for(size_t x = 1; x < 64; ++x) {
-        A1->elements[x] ^= A1->elements[0];
-    }
-    A1->elements[0] = 0;
-    for(size_t x = 1; x < 64; ++x) {
-        A2->elements[x] ^= A2->elements[0];
-    }
-    A2->elements[0] = 0;
 
     destroyTruthTable(A1);
     destroyTruthTable(A2);

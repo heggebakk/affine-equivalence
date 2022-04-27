@@ -62,11 +62,11 @@ TruthTable *randomAffineFunction(size_t n);
  * @param fp File with write access
  * @return A new random Affine permutation
  */
-TruthTable *randomAffinePermutation(size_t n, FILE *fp, TruthTable *L);
+TruthTable *randomLinearPermutation(size_t n, FILE *fp, TruthTable *L);
 
 /**
  * Create a new truth table with respect to a function F
- * Writes the two linear function L1 and L2 from the construction of randomAffinePermutation
+ * Writes the two linear function L1 and L2 from the construction of randomLinearPermutation
  * @param f The function F
  * @param fp Path to file with write access
  * @return A new function
