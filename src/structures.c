@@ -164,6 +164,12 @@ void printPartitionBuckets(Partition *partition) {
     printf("\n");
 }
 
+void printPartitionImages(Partition *F) {
+    for (int i = 0; i < F->numBuckets; ++i) {
+        printf("Bucket #%d = %zu\n", i, F->multiplicities[i]);
+    }
+}
+
 Partition *partitionTt(TruthTable *tt) {
     size_t dimension = tt->n;
     size_t *multiplicities = malloc(sizeof(size_t) * 1L << dimension);

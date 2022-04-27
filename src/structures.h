@@ -119,6 +119,12 @@ Partition *initPartition(size_t n);
 void printPartitionBuckets(Partition *partition);
 
 /**
+ * Print all the pre images of the partitions
+ * @param F The partition to print the images of
+ */
+void printPartitionImages(Partition *F);
+
+/**
  * Perform the partitioning of a function. This function will find out which bucket partition each element from the
  * TruthTable belongs to.
  * @param tt The truth table to partition

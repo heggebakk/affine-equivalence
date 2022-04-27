@@ -98,9 +98,51 @@ int main(int argc, char *argv[]) {
         memcpy(G->elements, orthoderivativeG->elements, sizeof(size_t) * 1L << n);
         addConstant(G, c1); // Add the constant c1 to G: G' = G + c_1
         Partition *partitionG = partitionTt(G);
-        BucketsMap *bucketsMap = mapBuckets(partitionF, partitionG); // Map F -> G
 
+        BucketsMap *bucketsMap = mapBuckets(partitionF, partitionG); // Map F -> G
+        /* We can mapA the buckets by their pre-images */
+        size_t *mapA = malloc(sizeof(size_t) * partitionF->numBuckets); // Create a list with the size of number of buckets
+        // Map F -> G
+        for (int i = 0; i < partitionF->numBuckets; ++i) {
+            size_t imageF = partitionF->multiplicities[i];
+            // Find the bucket where the pre-image of F equals the pre-image of G
+            for (int j = 0; j < partitionG->numBuckets; ++j) {
+                if (imageF == partitionG->multiplicities[j]) {
+                    mapA[i] = j;
+                    break;
+                }
+            }
+        }
+        printPartitionBuckets(partitionF);
+        printPartitionBuckets(partitionG);
+        printPartitionImages(partitionF);
+        printPartitionImages(partitionG);
+
+        printf("Map vs. bucketMap for F\n");
+        for (int i = 0; i < partitionF->numBuckets; ++i) {
+            printf("%zu: %zu\n", mapA[i], bucketsMap->mappings[0][i]);
+        }
+        printf("Map vs. bucketMap for G\n");
+        for (int i = 0; i < partitionF->numBuckets; ++i) {
+            printf("%zu: %zu\n", mapA[i], bucketsMap->mappings[1][i]);
+        }
+
+
+//        printf("%zu\n", bucketsMap->mappings[0][0]);
+//        printf("%zu\n", bucketsMap->mappings[0][1]);
+//        printf("%zu\n", bucketsMap->mappings[0][2]);
+//        printf("%zu\n", bucketsMap->mappings[0][3]);
+//        printf("\n");
+//        printf("%zu\n", bucketsMap->mappings[1][0]);
+//        printf("%zu\n", bucketsMap->mappings[1][1]);
+//        printf("%zu\n", bucketsMap->mappings[1][2]);
+//        printf("%zu\n", bucketsMap->mappings[1][3]);
         for (size_t map = 0; map < bucketsMap->numOfMappings; ++map) {
+//            printf("Map vs. bucketMap\n");
+//            for (int i = 0; i < partitionF->numBuckets; ++i) {
+//                printf("%zu: %zu\n", mapA[i], bucketsMap->mappings[0][i]);
+//            }
+//            printf("Map #%zu\n", map);
             // Calculate outer permutation, A1
             TtNode *A1 = outerPermutation(partitionF, partitionG, n, basis, bucketsMap->mappings[map]);
             size_t numPermutations = countTtNodes(A1);
@@ -153,7 +195,13 @@ int main(int argc, char *argv[]) {
                 destroyTruthTable(GPrime);
                 destroyTruthTable(A2);
 
-                if (foundSolution) break;
+                if (foundSolution) {
+                    printf("Used bucket map:\n");
+                    for (int w = 0; w < partitionF->numBuckets; ++w) {
+                        printf("%zu", bucketsMap->mappings[map][w]);
+                    }
+                    break;
+                }
             }
             destroyTtNode(A1);
 
@@ -166,7 +214,7 @@ int main(int argc, char *argv[]) {
         if (foundSolution) break;
     }
 
-//    printf("Results found in \"%s\"\n", writePath);
+    printf("Results found in \"%s\"\n", writePath);
     destroyTruthTable(functionF);
     destroyTruthTable(functionG);
     destroyTruthTable(L1);
