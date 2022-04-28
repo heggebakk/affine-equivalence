@@ -4,63 +4,47 @@ _Bool dot(size_t a, size_t b) {
     return __builtin_popcountl(a & b) % 2;
 }
 
-_Bool is_it_really_adjoint(TruthTable * L, TruthTable *La) {
-    size_t n = L->n;
-    for(size_t x = 0; x < (1L << n); ++x) {
-        for(size_t y = 0; y < (1L << n); ++y) {
-            if (dot(L->elements[x],y) != dot(x,La->elements[y])) {
-                return false;
-            }
-        }
-    }
-    return true;
-}
-
-TruthTable * recursive_adjoint(TruthTable * L, TruthTable * La, _Bool * assigned_elements, size_t i, size_t n) {
-//    printf("Entering stage number %lu\n", i);
-//    printf("Previously assigned: %lu -> %lu\n", i-1, La->elements[(1L << (i-1))]);
+TruthTable *recursiveAdjoint(TruthTable *L, TruthTable *La, bool *assignedElements, size_t i, size_t n) {
     if (i >= n) {
         return La;
     }
 
     /* Guess the value of basis element number i, i.e. 2^i */
-    size_t basis_element = (1L << i);
-    for(size_t value = 1; value < (1L << n); ++value) {
-        if(assigned_elements[value]) {
+    size_t basisElement = 1L << i;
+    for (size_t value = 1; value < 1L << n; ++value) {
+        if (assignedElements[value]) {
             continue;
         }
 
         /* Check for contradictions */
         _Bool problem = false;
-        for(size_t lincomb = 0; lincomb < (1L << (i)); ++lincomb) {
-            /* Now we know the value lincomb XOR basis_element */
-            size_t new_input = lincomb ^ basis_element;
-            size_t new_output = La->elements[lincomb] ^ value;
-            for(size_t x = 0; x < (1L << n); ++x) {
-                if (dot(L->elements[x],new_input) != dot(x,new_output)) {
+        for (size_t linearCombination = 0; linearCombination < 1L << i; ++linearCombination) {
+            /* Now we know the value linearCombination XOR basisElement */
+            size_t newInput = linearCombination ^ basisElement;
+            size_t newOutput = La->elements[linearCombination] ^ value;
+            for (size_t x = 0; x < 1L << n; ++x) {
+                if (dot(L->elements[x], newInput) != dot(x, newOutput)) {
                     problem = true;
                     break;
                 }
-                La->elements[new_input] = new_output;
-                //assigned_elements[new_output] = true;
+                La->elements[newInput] = newOutput;
             }
-            if(problem) {
+            if (problem) {
                 break;
             }
         }
 
-        if(!problem) {
-            TruthTable * potential_result = recursive_adjoint(L, La, assigned_elements, i+1, n);
-            if(potential_result) {
-                return potential_result;
+        if (!problem) {
+            TruthTable *potentialResult = recursiveAdjoint(L, La, assignedElements, i + 1, n);
+            if (potentialResult) {
+                return potentialResult;
             }
         }
 
         /* Reset Boolean map */
-        for(size_t lincomb = 0; lincomb < (1L << (i)); ++lincomb) {
-            size_t new_input = lincomb ^ basis_element;
-            size_t new_output = La->elements[lincomb] ^ value;
-            assigned_elements[new_output] = false;
+        for (size_t linearCombination = 0; linearCombination < 1L << i; ++linearCombination) {
+            size_t new_output = La->elements[linearCombination] ^ value;
+            assignedElements[new_output] = false;
         }
 
     }
@@ -71,10 +55,10 @@ TruthTable *adjoint(TruthTable *L) {
     size_t n = L->n;
     TruthTable *LAdjoint = initTruthTable(n);
     LAdjoint->elements[0] = 0;
-    _Bool *assigned_elements = calloc(sizeof(_Bool), 1L << n);
-    assigned_elements[0] = true;
-    TruthTable *adjointTt = recursive_adjoint(L, LAdjoint, assigned_elements, 0, n);
-    free(assigned_elements);
+    _Bool *assignedElements = calloc(sizeof(_Bool), 1L << n);
+    assignedElements[0] = true;
+    TruthTable *adjointTt = recursiveAdjoint(L, LAdjoint, assignedElements, 0, n);
+    free(assignedElements);
     return adjointTt;
 }
 
