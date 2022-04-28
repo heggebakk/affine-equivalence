@@ -119,6 +119,12 @@ Partition *initPartition(size_t n);
 void printPartitionBuckets(Partition *partition);
 
 /**
+ * Print all the pre images of the partitions
+ * @param F The partition to print the images of
+ */
+void printPartitionImages(Partition *F);
+
+/**
  * Perform the partitioning of a function. This function will find out which bucket partition each element from the
  * TruthTable belongs to.
  * @param tt The truth table to partition
@@ -187,29 +193,6 @@ void printNodes(Node *head);
  * @param head The pointer to the head of the linked list
  */
 void destroyNodes(Node *head);
-
-/**
- * A map of the partitions of two functions, F and G. Where F -> G.
- * If the partitions have several buckets of the same size, there is several possible mappings
- * Ex. F has the buckets with sizes [1,1,20,42] and G has [1,42,20,1] then we have the mappings
- * F[0] -> G[0,3], F[1] -> G[0,3], F[2] -> G[2], F[3] -> G[1] s.t we get the bucketsMap: [0, 3, 2, 1] and [3, 0, 2, 1].
- */
-typedef struct BucketsMap {
-    size_t **mappings;
-    size_t numOfMappings;
-} BucketsMap;
-
-/**
- * Initialize a new empty BucketsMap where there is allocated memory for the size of the list of mappings
- * @return A new BucketsMap
- */
-BucketsMap *initBucketsMap();
-
-/**
- * Destroy all the allocated memory of the BucketsMap
- * @param bucketsMap The BucketsMap to destroy
- */
-void destroyBucketsMap(BucketsMap *bucketsMap);
 
 /**
  * This is a linked list of TruthTables
