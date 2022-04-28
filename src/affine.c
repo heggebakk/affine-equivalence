@@ -30,88 +30,23 @@ TruthTable *parseFile(char *file) {
     return f;
 }
 
-BucketsMap *mapBuckets(struct Partition *F, struct Partition *G) {
-    BucketsMap *bucketsMap = initBucketsMap();
-    // Check for contradictions between F and G
-    if (F->numBuckets != G->numBuckets) {
-        return bucketsMap;
-    }
+size_t *mapPreImages(Partition *F, Partition *G) {
+    // First we check for contradiction.
+    if (F->numBuckets != G->numBuckets) return NULL;
 
-    /* Find all mappings for the different buckets, meaning that if a bucket in F has the same sizes as the buckets in G
-     * add the index of the bucket in G to the mappings
-     * ex. [[3, 0], [1], [2], [3, 0]] */
-    struct Node **maps = malloc(sizeof(Node) * F->numBuckets);
-    for (size_t i = 0; i < F->numBuckets; ++i) maps[i] = initNode();
+    size_t *map = malloc(sizeof(size_t) * F->numBuckets); // The new map where F -> G
 
-    // If we find a bucket in F that maps to G, add this bucket to the domain
-    for (size_t i = 0; i < F->numBuckets; ++i) {
-        bool sameSize = false; // For checking contradiction.
-        for (size_t j = 0; j < G->numBuckets; ++j) {
-            if (F->bucketSizes[i] == G->bucketSizes[j]) {
-                sameSize = true;
-                addNode(maps[i], j);
+    // Loop over all the buckets and map F -> G with their pre-images.
+    for (int i = 0; i < F->numBuckets; ++i) {
+        for (int j = 0; j < G->numBuckets; ++j) {
+            if (F->multiplicities[i] == G->multiplicities[j]) {
+                // If the multiplicity in F[i] == G[j], we have found the multiplicities that maps to another
+                map[i] = j;
+                break;
             }
         }
-        // If the partitions don't have the same sizes of the buckets, the partitions is not compatible.
-        if (!sameSize) return NULL;
     }
-
-    size_t numOfMappings = 1; // If no contradictions, we know that there is at least one valid mapping of f and g.
-
-    // Calculate how many mappings there is by using the lists mappings created above. If the mappings for example look
-    // like [[3, 0], [1], [2], [3, 0]], we will obtain 2 different mappings, [3,1,2,0] and [0,1,2,3]
-    bool *isCalculated = calloc(sizeof(bool), F->numBuckets); // Keeping track if we have used a bucket in the domain for the calculation
-    for (size_t i = 0; i < F->numBuckets; ++i) {
-        Node *current = maps[i]->next;
-        if (!isCalculated[current->data]) {
-            isCalculated[current->data] = true;
-            numOfMappings *= factorial(countNodes(maps[i]));
-        }
-    }
-    free(isCalculated);
-
-    bucketsMap->mappings = malloc(sizeof(size_t *) * numOfMappings);
-    bool *chosen = calloc(sizeof (bool), F->numBuckets);
-    size_t *currentBucket = malloc(sizeof(size_t) * F->numBuckets);
-    mapBucketsRecursively(0, chosen, maps, F, bucketsMap, currentBucket);
-    free(chosen);
-    free(currentBucket);
-
-    // Free memory for mappings
-    for (size_t i = 0; i < F->numBuckets; ++i) {
-        destroyNodes(maps[i]);
-    }
-    free(maps);
-
-    return bucketsMap;
-}
-
-void mapBucketsRecursively(size_t i, bool *chosen, Node **maps, Partition *partition, BucketsMap *bucketsMap,
-                           size_t *currentBucket) {
-    // If we have reached the end, we will add the new mapping tho the bucketsMap
-    if (i == partition->numBuckets) {
-        size_t numBuckets = partition->numBuckets;
-        addMapping(bucketsMap, numBuckets, currentBucket);
-        return;
-    }
-
-    Node *current = maps[i]->next; // The current bucket we want to map
-    while (current != NULL) {
-        if (!chosen[current->data]) { // Check if we already have used the current bucket for the construction
-            currentBucket[i] = current->data;
-            chosen[current->data] = true;
-            mapBucketsRecursively(i + 1, chosen, maps, partition, bucketsMap, currentBucket);
-            chosen[current->data] = false;
-        }
-        current = current->next;
-    }
-}
-
-void addMapping(BucketsMap *bucketsMap, size_t numBuckets, size_t *map) {
-    size_t size = bucketsMap->numOfMappings;
-    bucketsMap->mappings[size] = malloc(sizeof(size_t *) * numBuckets);
-    memcpy(bucketsMap->mappings[size], map, sizeof(size_t) * numBuckets); // Copy the map to the BucketsMap
-    bucketsMap->numOfMappings += 1;
+    return map;
 }
 
 void countElements(TruthTable *F, size_t *occurrences) {
@@ -120,14 +55,6 @@ void countElements(TruthTable *F, size_t *occurrences) {
         size_t y = F->elements[x];
         occurrences[y] += 1;
     }
-}
-
-size_t factorial(size_t n) {
-    size_t factorial = 1;
-    for (size_t i = 1; i < n + 1; ++i) {
-        factorial *= i;
-    }
-    return factorial;
 }
 
 TtNode *outerPermutation(Partition *F, Partition *G, size_t n, size_t *basis, size_t *map) {
@@ -169,7 +96,6 @@ guessValuesOfL(size_t k, size_t *basis, size_t *images, Partition *F, Partition 
         destroyTruthTable(new);
         return;
     }
-
     /**
      * We then take the bucket of the same size from the partition with respect to G. We know that the image of the
      * basis element must belong to that bucket.
@@ -347,8 +273,6 @@ bool innerPermutation(TruthTable *F, TruthTable *G, const size_t *basis, TruthTa
 
             /* If everything went smoothly, we should have aPrime == G */
             TruthTable *aPrime = compose(F, L2);
-//            printf("Constant c2: %zu\n", c2);
-//            fprintf(fp, "Constant c2: %zu\n", c2);
 
             destroyTruthTable(aPrime);
             destroyTruthTable(newG);

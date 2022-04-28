@@ -24,8 +24,6 @@ void addConstant(TruthTable *F, size_t c);
  */
 bool isAffine(TruthTable *F);
 
-void checkFlags(char *filename, char *writePath, int argc, char *argv[]);
-
 /**
  * Print out a list over all the flags that can be used in the program
  */
@@ -98,123 +96,71 @@ int main(int argc, char *argv[]) {
         memcpy(G->elements, orthoderivativeG->elements, sizeof(size_t) * 1L << n);
         addConstant(G, c1); // Add the constant c1 to G: G' = G + c_1
         Partition *partitionG = partitionTt(G);
+        size_t *mapOfPreImages = mapPreImages(partitionF, partitionG); // Create a mapping between the pre-images of F and G
 
-        BucketsMap *bucketsMap = mapBuckets(partitionF, partitionG); // Map F -> G
-        /* We can mapA the buckets by their pre-images */
-        size_t *mapA = malloc(sizeof(size_t) * partitionF->numBuckets); // Create a list with the size of number of buckets
-        // Map F -> G
-        for (int i = 0; i < partitionF->numBuckets; ++i) {
-            size_t imageF = partitionF->multiplicities[i];
-            // Find the bucket where the pre-image of F equals the pre-image of G
-            for (int j = 0; j < partitionG->numBuckets; ++j) {
-                if (imageF == partitionG->multiplicities[j]) {
-                    mapA[i] = j;
-                    break;
+        // Calculate outer permutation, A1
+        TtNode *A1 = outerPermutation(partitionF, partitionG, n, basis, mapOfPreImages);
+        size_t numPermutations = countTtNodes(A1);
+
+        // Go over all the possible permutations A1, and try for inner permutation L2
+        for (size_t i = 0; i < numPermutations; ++i) {
+            TruthTable *currentA1 = getTtNode(A1, i); // A1[i], the A1 we are testing
+            TruthTable *A1Inverse = inverse(currentA1); // A1^{-1}
+            TruthTable *GPrime = compose(A1Inverse, G); // A1^{-1} * G = G'
+            TruthTable *A2 = initTruthTable(n);
+            A2->elements[0] = 0; // We know that the function is linear => L[0] -> 0
+
+            if (innerPermutation(orthoderivativeF, GPrime, basis, A2)) {
+                /* At this point, we know (A1,A2) linear s.t. A1 * orthoderivativeF * A2 = orthoderivativeG */
+                // We don't want to print out all the A1, A2 if the user looks for A
+                if (!computeAffineA) {
+                    foundSolution = true;
+                    fprintf(fp, "A1:\n");
+                    writeTruthTable(fp, currentA1);
+                    fprintf(fp, "A2:\n");
+                    writeTruthTable(fp, A2);
                 }
-            }
-        }
-        printPartitionBuckets(partitionF);
-        printPartitionBuckets(partitionG);
-        printPartitionImages(partitionF);
-        printPartitionImages(partitionG);
-
-        printf("Map vs. bucketMap for F\n");
-        for (int i = 0; i < partitionF->numBuckets; ++i) {
-            printf("%zu: %zu\n", mapA[i], bucketsMap->mappings[0][i]);
-        }
-        printf("Map vs. bucketMap for G\n");
-        for (int i = 0; i < partitionF->numBuckets; ++i) {
-            printf("%zu: %zu\n", mapA[i], bucketsMap->mappings[1][i]);
-        }
-
-
-//        printf("%zu\n", bucketsMap->mappings[0][0]);
-//        printf("%zu\n", bucketsMap->mappings[0][1]);
-//        printf("%zu\n", bucketsMap->mappings[0][2]);
-//        printf("%zu\n", bucketsMap->mappings[0][3]);
-//        printf("\n");
-//        printf("%zu\n", bucketsMap->mappings[1][0]);
-//        printf("%zu\n", bucketsMap->mappings[1][1]);
-//        printf("%zu\n", bucketsMap->mappings[1][2]);
-//        printf("%zu\n", bucketsMap->mappings[1][3]);
-        for (size_t map = 0; map < bucketsMap->numOfMappings; ++map) {
-//            printf("Map vs. bucketMap\n");
-//            for (int i = 0; i < partitionF->numBuckets; ++i) {
-//                printf("%zu: %zu\n", mapA[i], bucketsMap->mappings[0][i]);
-//            }
-//            printf("Map #%zu\n", map);
-            // Calculate outer permutation, A1
-            TtNode *A1 = outerPermutation(partitionF, partitionG, n, basis, bucketsMap->mappings[map]);
-            size_t numPermutations = countTtNodes(A1);
-
-            // Go over all the possible permutations A1, and try for inner permutation L2
-            for (size_t i = 0; i < numPermutations; ++i) {
-                TruthTable *currentA1 = getTtNode(A1, i); // A1[i], the A1 we are testing
-                TruthTable *A1Inverse = inverse(currentA1); // A1^{-1}
-                TruthTable *GPrime = compose(A1Inverse, G); // A1^{-1} * G = G'
-                TruthTable *A2 = initTruthTable(n);
-                A2->elements[0] = 0; // We know that the function is linear => L[0] -> 0
-
-                if (innerPermutation(orthoderivativeF, GPrime, basis, A2)) {
-                    /* At this point, we know (A1,A2) linear s.t. A1 * orthoderivativeF * A2 = orthoderivativeG */
-                    // We don't want to print out all the A1, A2 if the user looks for A
-                    if (!computeAffineA) {
-                        foundSolution = true;
-                        fprintf(fp, "A1:\n");
-                        writeTruthTable(fp, currentA1);
-                        fprintf(fp, "A2:\n");
-                        writeTruthTable(fp, A2);
-                    }
 
                     /* Now, since the affine function A takes more time to compute, the user can use the flag -a to
                      * choose to compute A. */
-                    else {
-                        /* If L1 * F * L2 + A = G for the actual functions F and G (as opposed to the ODs),
-                        * then A1 = A1Inverse, and A2 = A2 */
-                        TruthTable * A1Adjoint = adjoint(currentA1); // The adjoint of A1
-                        TruthTable *A1AdjointInverse = inverse(A1Adjoint); // The inverse of the adjoint of A1 = L1
-                        destroyTruthTable(A1Adjoint);
+                else {
+                    /* If L1 * F * L2 + A = G for the actual functions F and G (as opposed to the ODs),
+                    * then A1 = A1Inverse, and A2 = A2 */
+                    TruthTable * A1Adjoint = adjoint(currentA1); // The adjoint of A1
+                    TruthTable *A1AdjointInverse = inverse(A1Adjoint); // The inverse of the adjoint of A1 = L1
+                    destroyTruthTable(A1Adjoint);
 
-                        // Now compute L1 * F * L2 + G = A
-                        TruthTable *fComposeL2 = compose(functionF, L2); // F * L2
-                        TruthTable *A = compose(A1AdjointInverse, fComposeL2); // L*Inverse * F * L2
-                        add(A, functionG); // L*Inverse * F * A2 + G = A
-                        // Check if A is affine, if true, write result and quit
-                        if(isAffine(A)) {
-                            foundSolution = true;
-                            fprintf(fp, "A:\n");
-                            writeTruthTable(fp, A);
-                        }
-
-                        destroyTruthTable(fComposeL2);
-                        destroyTruthTable(A);
-                        destroyTruthTable(A1AdjointInverse);
+                    // Now compute L1 * F * L2 + G = A
+                    TruthTable *fComposeL2 = compose(functionF, L2); // F * L2
+                    TruthTable *A = compose(A1AdjointInverse, fComposeL2); // L*Inverse * F * L2
+                    add(A, functionG); // L*Inverse * F * A2 + G = A
+                    // Check if A is affine, if true, write result and quit
+                    if(isAffine(A)) {
+                        foundSolution = true;
+                        fprintf(fp, "A:\n");
+                        writeTruthTable(fp, A);
                     }
-                }
-                destroyTruthTable(A1Inverse);
-                destroyTruthTable(GPrime);
-                destroyTruthTable(A2);
 
-                if (foundSolution) {
-                    printf("Used bucket map:\n");
-                    for (int w = 0; w < partitionF->numBuckets; ++w) {
-                        printf("%zu", bucketsMap->mappings[map][w]);
-                    }
-                    break;
+                    destroyTruthTable(fComposeL2);
+                    destroyTruthTable(A);
+                    destroyTruthTable(A1AdjointInverse);
                 }
             }
-            destroyTtNode(A1);
+            destroyTruthTable(A1Inverse);
+            destroyTruthTable(GPrime);
+            destroyTruthTable(A2);
 
             if (foundSolution) break;
         }
+        destroyTtNode(A1);
+
         destroyTruthTable(G);
-        destroyBucketsMap(bucketsMap);
         destroyPartition(partitionG);
 
         if (foundSolution) break;
     }
 
-    printf("Results found in \"%s\"\n", writePath);
+//    printf("Results found in \"%s\"\n", writePath);
     destroyTruthTable(functionF);
     destroyTruthTable(functionG);
     destroyTruthTable(L1);
@@ -227,7 +173,6 @@ int main(int argc, char *argv[]) {
 
     return 0;
 }
-
 
 void printHelp() {
     printf("Affine\n");

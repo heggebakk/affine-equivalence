@@ -269,22 +269,6 @@ void destroyNodes(Node *head) {
     }
 }
 
-BucketsMap *initBucketsMap() {
-    BucketsMap *new = malloc(sizeof(BucketsMap));
-    new->numOfMappings = 0;
-    return new;
-}
-
-void destroyBucketsMap(BucketsMap *bucketsMap) {
-    for (int i = 0; i < bucketsMap->numOfMappings; ++i) {
-        free(bucketsMap->mappings[i]);
-    }
-    if (bucketsMap->numOfMappings != 0) {
-        free(bucketsMap->mappings);
-    }
-    free(bucketsMap);
-}
-
 TtNode *initTtNode() {
     TtNode *newNode = malloc(sizeof(TtNode));
     newNode->data = NULL;
