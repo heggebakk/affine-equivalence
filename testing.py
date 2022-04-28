@@ -1,13 +1,18 @@
 import logging
 import subprocess
+import threading
 import time
 
-# dim = "dim8"
-# filenames = ["classic_1.tt", "classic_2.tt", "classic_3.tt", "classic_4.tt"]
-# root = f"../TT_library/{dim}/classic/"
-dim = "dim6"
-filenames = ["q_6_1.tt", "q_6_2.tt", "q_6_3.tt", "q_6_4.tt"]
-root = f"../TT_library/{dim}/"
+# dim = "dim10"
+# filenames = ["q_10_1.tt", "q_10_2.tt", "q_10_3.tt", "q_10_4.tt"]
+# root = f"../TT_library/{dim}/"
+dim = "dim8"
+filenames = ["classic_1.tt", "classic_2.tt", "classic_3.tt", "classic_4.tt"]
+root = f"../TT_library/{dim}/classic/"
+# dim = "dim6"
+# filenames = ["q_6_1.tt", "q_6_2.tt", "q_6_3.tt", "q_6_4.tt"]
+# root = f"../TT_library/{dim}/"
+
 count = 10
 
 
@@ -27,5 +32,10 @@ def affine(name):
 if __name__ == '__main__':
     time_format = "%(asctime)s: %(message)s"
     logging.basicConfig(format=time_format, level=logging.INFO, datefmt="%H:%M:%S")
+    threads = list()
     for f in filenames:
-        affine(f)
+        x = threading.Thread(target=affine, args=(f,))
+        threads.append(x)
+        x.start()
+    for thread in threads:
+        thread.join()
