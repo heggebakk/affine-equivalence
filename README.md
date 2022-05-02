@@ -30,11 +30,6 @@ The `function F` is expected to be in the format:
 This function is the Gold function of dimension 6, given in the representation as a truth table, where the first line is the dimension of the function, and the second line is all the elements of the function.
 
 #### Examples
-Example:
-```shell
-./affine -w test.txt path/to/functionF
-```
-
 Example testing two functions `F` and `G`:
 ```shell
 ./affine -g path/to/functionG path/to/functionF
