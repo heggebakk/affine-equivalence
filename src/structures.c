@@ -139,6 +139,7 @@ void writeTruthTable(FILE *filepath, TruthTable *tt) {
 }
 
 void destroyTruthTable(TruthTable *tt) {
+    if (tt == NULL) return;
     free(tt->elements);
     free(tt);
 }
