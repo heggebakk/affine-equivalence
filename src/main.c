@@ -73,15 +73,11 @@ int main(int argc, char *argv[]) {
     // L1 and L2 are the linear functions from the creation of a random G with respect to F
     TruthTable *functionF = parseFile(pathF); // Parsed truth table of function F
     TruthTable *functionG;
-    TruthTable *L1; // Only initialized if we want to find A
-    TruthTable *L2; // Only initialized if we want to find A
     n = functionF->n;
     if (pathG) {
         functionG = parseFile(pathG);
     } else {
-        L1 = initTruthTable(n);
-        L2 = initTruthTable(n);
-        functionG = createTruthTable(functionF, L1, L2); // Create a random function G with respect to F
+        functionG = createTruthTable(functionF); // Create a random function G with respect to F
     }
     TruthTable *orthoderivativeF = orthoderivative(functionF); // The orthoderivative of F
     TruthTable *orthoderivativeG = orthoderivative(functionG); // The orthoderivative of G
@@ -131,11 +127,11 @@ int main(int argc, char *argv[]) {
                     destroyTruthTable(A1Adjoint);
 
                     // Now compute L1 * F * L2 + G = A
-                    TruthTable *fComposeL2 = compose(functionF, L2); // F * L2
+                    TruthTable *fComposeL2 = compose(functionF, A2); // F * L2
                     TruthTable *A = compose(A1AdjointInverse, fComposeL2); // L*Inverse * F * L2
                     add(A, functionG); // L*Inverse * F * A2 + G = A
                     // Check if A is affine, if true, write result and quit
-                    if(isAffine(A)) {
+                    if (isAffine(A)) {
                         foundSolution = true;
                         fprintf(fp, "A:\n");
                         writeTruthTable(fp, A);
@@ -156,6 +152,7 @@ int main(int argc, char *argv[]) {
 
         destroyTruthTable(G);
         destroyPartition(partitionG);
+        free(mapOfPreImages);
 
         if (foundSolution) break;
     }
@@ -163,8 +160,6 @@ int main(int argc, char *argv[]) {
 //    printf("Results found in \"%s\"\n", writePath);
     destroyTruthTable(functionF);
     destroyTruthTable(functionG);
-    destroyTruthTable(L1);
-    destroyTruthTable(L2);
     destroyTruthTable(orthoderivativeF);
     destroyTruthTable(orthoderivativeG);
     destroyPartition(partitionF);

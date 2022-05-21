@@ -66,12 +66,10 @@ TruthTable *randomLinearPermutation(size_t n);
 /**
  * Create a new truth table with respect to a function F
  * Writes the two linear function L1 and L2 from the construction of randomLinearPermutation
- * @param f The function F
- * @param L1 The function L1 constructed before adding a constant to A1 to create the function
- * @param L2 The function L2 constructed before adding a constant to A2 to create the function
+ * @param F The function F
  * @return A new function with respect to F
  */
-TruthTable *createTruthTable(TruthTable *f, TruthTable *L1, TruthTable *L2);
+TruthTable *createTruthTable(TruthTable *F);
 
 /**
  * Print all the elements of the TruthTable to the console
