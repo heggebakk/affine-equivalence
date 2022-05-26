@@ -128,18 +128,7 @@ void printTruthTable(TruthTable *tt) {
     printf("\n");
 }
 
-void writeTruthTable(FILE *filepath, TruthTable *tt) {
-    for (int i = 0; i < 1L << tt->n; ++i) {
-        if (i < (1L << tt->n) - 1) {
-            fprintf(filepath, "%zu ", tt->elements[i]);
-        } else {
-            fprintf(filepath, "%zu\n", tt->elements[i]);
-        }
-    }
-}
-
 void destroyTruthTable(TruthTable *tt) {
-    if (tt == NULL) return;
     free(tt->elements);
     free(tt);
 }
@@ -165,7 +154,7 @@ void printPartitionBuckets(Partition *partition) {
     printf("\n");
 }
 
-void printPartitionImages(Partition *F) {
+void printPartition(Partition *F) {
     for (int i = 0; i < F->numBuckets; ++i) {
         printf("Bucket #%d = %zu\n", i, F->multiplicities[i]);
     }

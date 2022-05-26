@@ -11,7 +11,7 @@ TruthTable *parseFile(char *file) {
 
     // Check if file is found
     if (fp == NULL) {
-        printf("File, %s, not found", file);
+        printf("File, %s, not found\n", file);
         fclose(fp);
         exit(1);
     }

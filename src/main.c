@@ -32,7 +32,6 @@ void printHelp();
 int main(int argc, char *argv[]) {
     char *pathF; // Filepath for the function F
     char *pathG = NULL; // Filepath for hte function G
-    char *writePath = NULL; // Path to file for writing the results
     size_t n; // Working n
     size_t *basis; // List of the standard basis, {b_1, ..., b_n}
     bool computeAffineA = false; // Set to true if the user want to find A
@@ -57,19 +56,9 @@ int main(int argc, char *argv[]) {
                     i++;
                     pathG = argv[i];
                     continue;
-                case 'w':
-                    i++;
-                    writePath = argv[i];
-                    continue;
             }
         }
     }
-    if (writePath == NULL) {
-        // If the user have not sent in a pathF to write to, we create a default file
-        writePath = "results.txt";
-    }
-    FILE *fp = fopen(writePath, "w+");
-    fprintf(fp, "%s\n", pathF); // Write the pathF of the function F
     // L1 and L2 are the linear functions from the creation of a random G with respect to F
     TruthTable *functionF = parseFile(pathF); // Parsed truth table of function F
     TruthTable *functionG;
@@ -78,6 +67,8 @@ int main(int argc, char *argv[]) {
     n = functionF->n;
     if (pathG) {
         functionG = parseFile(pathG);
+        free(L1);
+        free(L2);
     } else {
         L1 = initTruthTable(n);
         L2 = initTruthTable(n);
@@ -115,14 +106,13 @@ int main(int argc, char *argv[]) {
                 // We don't want to print out all the A1, A2 if the user looks for A
                 if (!computeAffineA) {
                     foundSolution = true;
-                    fprintf(fp, "A1:\n");
-                    writeTruthTable(fp, currentA1);
-                    fprintf(fp, "A2:\n");
-                    writeTruthTable(fp, A2);
+                    printf("A1:\n");
+                    printTruthTable(currentA1);
+                    printf("A2:\n");
+                    printTruthTable(A2);
                 }
-
-                    /* Now, since the affine function A takes more time to compute, the user can use the flag -a to
-                     * choose to compute A. */
+                /* Now, since the affine function A takes more time to compute, the user can use the flag -a to
+                 * choose to compute A. */
                 else {
                     /* If L1 * F * L2 + A = G for the actual functions F and G (as opposed to the ODs),
                     * then A1 = A1Inverse, and A2 = A2 */
@@ -134,11 +124,15 @@ int main(int argc, char *argv[]) {
                     TruthTable *fComposeL2 = compose(functionF, L2); // F * L2
                     TruthTable *A = compose(A1AdjointInverse, fComposeL2); // L*Inverse * F * L2
                     add(A, functionG); // L*Inverse * F * A2 + G = A
-                    // Check if A is affine, if true, write result and quit
+                    // Check if A is affine, if true, print result and quit
                     if(isAffine(A)) {
                         foundSolution = true;
-                        fprintf(fp, "A:\n");
-                        writeTruthTable(fp, A);
+                        printf("A1:\n");
+                        printTruthTable(currentA1);
+                        printf("A2:\n");
+                        printTruthTable(A2);
+                        printf("A:\n");
+                        printTruthTable(A);
                     }
 
                     destroyTruthTable(fComposeL2);
@@ -156,11 +150,11 @@ int main(int argc, char *argv[]) {
 
         destroyTruthTable(G);
         destroyPartition(partitionG);
+        free(mapOfPreImages);
 
         if (foundSolution) break;
     }
 
-//    printf("Results found in \"%s\"\n", writePath);
     destroyTruthTable(functionF);
     destroyTruthTable(functionG);
     destroyTruthTable(L1);
@@ -169,8 +163,6 @@ int main(int argc, char *argv[]) {
     destroyTruthTable(orthoderivativeG);
     destroyPartition(partitionF);
     free(basis);
-    fclose(fp);
-
     return 0;
 }
 
@@ -181,7 +173,6 @@ void printHelp() {
     printf("\t-a \t- Set this if you want to find the affine function A.\n");
     printf("\t-g \t- The root filename where the function G is found.\tIf not given, the program will compute a random G with respect to F.\n");
     printf("\t-h \t- Print help\n");
-    printf("\t-w \t- The root filename where the results should be written to, default: \"results.txt\"\n");
     printf("\n");
     printf("\tfilename = the root filename of function F\n");
     printf("\t-h override all other options\n");

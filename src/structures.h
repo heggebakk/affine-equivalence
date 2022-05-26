@@ -65,7 +65,7 @@ TruthTable *randomLinearPermutation(size_t n);
 
 /**
  * Create a new truth table with respect to a function F
- * Writes the two linear function L1 and L2 from the construction of randomLinearPermutation
+ * Also saves the two linear function L1 and L2 from the construction of randomLinearPermutation
  * @param f The function F
  * @param L1 The function L1 constructed before adding a constant to A1 to create the function
  * @param L2 The function L2 constructed before adding a constant to A2 to create the function
@@ -78,13 +78,6 @@ TruthTable *createTruthTable(TruthTable *f, TruthTable *L1, TruthTable *L2);
  * @param tt The pointer to the truth table to print out
  */
 void printTruthTable(TruthTable *tt);
-
-/**
- * Write all the elements of the TruthTable to a file
- * @param tt The pointer to the truth table to write to a file
- * @param filepath The FILE to write to
- */
-void writeTruthTable(FILE *filepath, TruthTable *tt);
 
 /**
  * Free the memory that is allocated for the struct TruthTable
@@ -122,7 +115,7 @@ void printPartitionBuckets(Partition *partition);
  * Print all the pre images of the partitions
  * @param F The partition to print the images of
  */
-void printPartitionImages(Partition *F);
+void printPartition(Partition *F);
 
 /**
  * Perform the partitioning of a function. This function will find out which bucket partition each element from the
