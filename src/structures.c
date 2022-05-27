@@ -82,8 +82,8 @@ TruthTable *randomLinearPermutation(size_t n) {
     return newFunction;
 }
 
-TruthTable *createTruthTable(TruthTable *f, TruthTable *L1, TruthTable *L2) {
-    size_t n = f->n;
+TruthTable *createTruthTable(TruthTable *F) {
+    size_t n = F->n;
     size_t entries = 1L << n;
 
     // A1 * F * A2 + A = G
@@ -91,8 +91,6 @@ TruthTable *createTruthTable(TruthTable *f, TruthTable *L1, TruthTable *L2) {
     TruthTable *A2 = randomLinearPermutation(n);
     TruthTable *A = randomLinearFunction(n);
     // Copy A1 A2 to L1 L2 before we add random constants to A1 A2 A, to create affine functions.
-    memcpy(L1->elements, A1->elements, sizeof(size_t) * entries);
-    memcpy(L2->elements, A2->elements, sizeof(size_t) * entries);
 
     // A random constant c, where c is in 2^n
     size_t constant1 = rand() % entries;
@@ -105,7 +103,7 @@ TruthTable *createTruthTable(TruthTable *f, TruthTable *L1, TruthTable *L2) {
         A->elements[i] ^= constant3;
     }
 
-    TruthTable *FComposeA2 = compose(f, A2);
+    TruthTable *FComposeA2 = compose(F, A2);
     TruthTable *G = compose(A1, FComposeA2);
     add(G, A);
 
@@ -118,6 +116,7 @@ TruthTable *createTruthTable(TruthTable *f, TruthTable *L1, TruthTable *L2) {
 }
 
 void printTruthTable(TruthTable *tt) {
+    printf("%zu\n", tt->n);
     for (int i = 0; i < 1L << tt->n; ++i) {
         if (i < (1L << tt->n) - 1) {
             printf("%zu ", tt->elements[i]);
