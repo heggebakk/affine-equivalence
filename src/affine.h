@@ -36,15 +36,16 @@ void countElements(TruthTable *F, size_t *occurrences);
  * @param map Tells how F -> G
  * @return All linear permutations L1
  */
-TtNode *outerPermutation(Partition *F, Partition *G, size_t n, size_t *basis, size_t *map);
+bool outerPermutation(Partition *F, Partition *G, size_t n, size_t *basis, size_t *map, TruthTable *functionF,
+                      TruthTable *functionG);
 
 /**
  * Recursive function for reconstruction of all linear permutations L1
  * @param k Recursive step
  * @param basis A basis {b_1,...,b_n}
  * @param images Images of the basis elements under L
- * @param F Partition of function F
- * @param G Partition of function G
+ * @param partitionF Partition of function F
+ * @param partitionG Partition of function G
  * @param n Dimension
  * @param generated A partial truth table for L
  * @param generatedImages List, same size as images, holds the information if the images has been generated or not
@@ -54,8 +55,9 @@ TtNode *outerPermutation(Partition *F, Partition *G, size_t n, size_t *basis, si
  * @param map Tells how F -> G
  */
 void
-guessValuesOfL(size_t k, size_t *basis, size_t *images, Partition *F, Partition *G, size_t n, size_t *generated,
-               bool *generatedImages, TtNode *L1, size_t *fBucket, size_t *gBucket, size_t *map);
+guessValuesOfL(size_t k, size_t *basis, size_t *images, Partition *partitionF, Partition *partitionG, size_t n,
+               size_t *generated, bool *generatedImages, size_t *fBucket, size_t *gBucket, size_t *map,
+               bool *foundSolution, TruthTable *functionF, TruthTable *functionG);
 
 /**
  * Create a list that tells in which bucket each element belongs to.

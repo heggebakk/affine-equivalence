@@ -2,6 +2,7 @@
 #include <memory.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <time.h>
 #include "structures.h"
 #include "affine.h"
 
@@ -82,7 +83,7 @@ TruthTable *randomLinearPermutation(size_t n) {
     return newFunction;
 }
 
-TruthTable *createTruthTable(TruthTable *f, TruthTable *L1, TruthTable *L2) {
+TruthTable *createTruthTable(TruthTable *f) {
     size_t n = f->n;
     size_t entries = 1L << n;
 
@@ -91,8 +92,6 @@ TruthTable *createTruthTable(TruthTable *f, TruthTable *L1, TruthTable *L2) {
     TruthTable *A2 = randomLinearPermutation(n);
     TruthTable *A = randomLinearFunction(n);
     // Copy A1 A2 to L1 L2 before we add random constants to A1 A2 A, to create affine functions.
-    memcpy(L1->elements, A1->elements, sizeof(size_t) * entries);
-    memcpy(L2->elements, A2->elements, sizeof(size_t) * entries);
 
     // A random constant c, where c is in 2^n
     size_t constant1 = rand() % entries;
@@ -315,3 +314,23 @@ void destroyTtNode(TtNode *head) {
         }
     }
 }
+
+RunTimes *initRunTimes() {
+    RunTimes *newTime = malloc(sizeof(RunTimes));
+    newTime->total = 0.0;
+    return newTime;
+}
+
+double stopTime(double runTime, clock_t startParsing) {
+    runTime += (double) (clock() - startParsing) / CLOCKS_PER_SEC;
+    return runTime;
+}
+
+void printTimes(RunTimes *runTimes) {
+    printf("Total time spent: %f \n", runTimes->total);
+}
+
+void destroyRunTimes(RunTimes *runTimes) {
+    free(runTimes);
+}
+

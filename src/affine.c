@@ -57,11 +57,12 @@ void countElements(TruthTable *F, size_t *occurrences) {
     }
 }
 
-TtNode *outerPermutation(Partition *F, Partition *G, size_t n, size_t *basis, size_t *map) {
-    TtNode *L1 = initTtNode();
+bool outerPermutation(Partition *F, Partition *G, size_t n, size_t *basis, size_t *map, TruthTable *functionF,
+                      TruthTable *functionG) {
     size_t *images = malloc(sizeof(size_t) * n); // The images of the basis elements under l
     size_t *generated = calloc(sizeof(size_t), 1L << n); // A partial truth table for l
     bool *generatedImages = calloc(sizeof(bool), 1L << n);
+    bool foundSolution = false;
 
     /**
      * Create dictionaries indexing buckets by elements
@@ -71,40 +72,64 @@ TtNode *outerPermutation(Partition *F, Partition *G, size_t n, size_t *basis, si
     size_t *gClass = createBucketRepresentation(G, n);
 
     // Recursively guess the values of l on the basis (essentially, a dfs with backtracking upon contradiction
-    guessValuesOfL(0, basis, images, F, G, n, generated, generatedImages, L1, fClass, gClass, map);
+    guessValuesOfL(0, basis, images, F, G, n, generated, generatedImages, fClass, gClass, map, &foundSolution, functionF,
+                   functionG);
 
     free(images);
     free(generated);
     free(generatedImages);
     free(fClass);
     free(gClass);
-    return L1;
+    return foundSolution;
 }
 
 void
-guessValuesOfL(size_t k, size_t *basis, size_t *images, Partition *F, Partition *G, size_t n, size_t *generated,
-               bool *generatedImages, TtNode *L1, size_t *fBucket, size_t *gBucket, size_t *map) {
+guessValuesOfL(size_t k, size_t *basis, size_t *images, Partition *partitionF, Partition *partitionG, size_t n,
+               size_t *generated, bool *generatedImages, size_t *fBucket, size_t *gBucket, size_t *map,
+               bool *foundSolution, TruthTable *functionF, TruthTable *functionG) {
+    if (*foundSolution) return;
     /**
      * If all basis elements have been assigned an image, and no contradictions have occurs, then we have found a
      * linear permutation preserving the partition. We reconstruct its truth table, and add it to the linked list
      * containing all permutations found by the search.
      */
     if (k == n) {
-        TruthTable *new = initTruthTable(n);
-        memcpy(new->elements, generated, sizeof(size_t) * 1L << n);
-        addTtNode(L1, new);
-        destroyTruthTable(new);
+        TruthTable *currentA1 = initTruthTable(n);
+        memcpy(currentA1->elements, generated, sizeof(size_t) * 1L << n);
+        TruthTable *A1Inverse = inverse(currentA1); // A1^{-1}
+        TruthTable *GPrime = compose(A1Inverse, functionG); // A1^{-1} * ODGc = ODGc'
+        TruthTable *A2 = initTruthTable(n);
+        A2->elements[0] = 0; // We know that the function is linear => L[0] -> 0
+
+        if (innerPermutation(functionF, GPrime, basis, A2)) {
+            /* At this point, we know (A1,A2) linear s.t. A1 * orthoderivativeF * A2 = orthoderivativeG */
+            // We don't want to print out all the A1, A2 if the user looks for A
+            *foundSolution = true;
+            printf("A1:\n");
+            printTruthTable(currentA1);
+            printf("A2:\n");
+            printTruthTable(A2);
+            destroyTruthTable(A1Inverse);
+            destroyTruthTable(GPrime);
+            destroyTruthTable(A2);
+            destroyTruthTable(currentA1);
+            return;
+        }
+        destroyTruthTable(currentA1);
+        destroyTruthTable(A1Inverse);
+        destroyTruthTable(GPrime);
+        destroyTruthTable(A2);
         return;
     }
-    /**
-     * We then take the bucket of the same size from the partition with respect to G. We know that the image of the
-     * basis element must belong to that bucket.
-     */
+        /**
+         * We then take the bucket of the same size from the partition with respect to G. We know that the image of the
+         * basis element must belong to that bucket.
+         */
     size_t posBucketG = map[fBucket[basis[k]]];
 
     // We now go through all possible choices from the bucket
-    for (size_t ick = 0; ick < G->bucketSizes[posBucketG]; ++ick) {
-        size_t ck = G->buckets[posBucketG][ick];
+    for (size_t ick = 0; ick < partitionG->bucketSizes[posBucketG]; ++ick) {
+        size_t ck = partitionG->buckets[posBucketG][ick];
 
         /**
          * Since we want the function to be a permutation, the image of the basis element should not be one of the
@@ -145,7 +170,7 @@ guessValuesOfL(size_t k, size_t *basis, size_t *images, Partition *F, Partition 
              }
 
              // Check for contradiction as described above
-             if (F->bucketSizes[fBucket[x]] != G->bucketSizes[gBucket[y]]) {
+             if (partitionF->bucketSizes[fBucket[x]] != partitionG->bucketSizes[gBucket[y]]) {
                  problem = true;
                  break;
              }
@@ -159,8 +184,9 @@ guessValuesOfL(size_t k, size_t *basis, size_t *images, Partition *F, Partition 
         // If no contradiction is encountered, we go to the next basis element
         if (!problem) {
             images[k] = ck;
-            guessValuesOfL(k + 1, basis, images, F, G, n, generated, generatedImages, L1, fBucket, gBucket,
-                           map);
+            guessValuesOfL(k + 1, basis, images, partitionF, partitionG, n, generated, generatedImages, fBucket,
+                           gBucket,
+                           map, foundSolution, functionF, functionG);
         }
 
         // When backtracking, we need to reset the generated image indicators

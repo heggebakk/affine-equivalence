@@ -71,7 +71,7 @@ TruthTable *randomLinearPermutation(size_t n);
  * @param L2 The function L2 constructed before adding a constant to A2 to create the function
  * @return A new function with respect to F
  */
-TruthTable *createTruthTable(TruthTable *f, TruthTable *L1, TruthTable *L2);
+TruthTable *createTruthTable(TruthTable *f);
 
 /**
  * Print all the elements of the TruthTable to the console
@@ -236,5 +236,38 @@ size_t countTtNodes(TtNode *head);
  * @param head The pointer to the head of the linked list
  */
 void destroyTtNode(TtNode *head);
+
+/**
+ * A struct for keeping all the run times for the entire program
+ */
+typedef struct RunTimes {
+    double total;
+} RunTimes;
+
+/**
+ * Initialize a new empty struct of Run times
+ * @return A empty RunTimes
+ */
+RunTimes *initRunTimes();
+
+/**
+ * Stop the time and return the run time
+ * @param runTime The time to do the calculations on
+ * @param startParsing The start time
+ * @return The total run time
+ */
+double stopTime(double runTime, clock_t startParsing);
+
+/**
+ * Print all times to the console
+ * @param runTimes the Run times to print
+ */
+void printTimes(RunTimes *runTimes);
+
+/**
+ * Destroy the run times
+ * @param runTimes The run times to destroy
+ */
+void destroyRunTimes(RunTimes *runTimes);
 
 #endif //AFFINE_STRUCTURES_H
