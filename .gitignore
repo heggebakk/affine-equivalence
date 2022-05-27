@@ -149,3 +149,4 @@ fabric.properties
 /vgcore.*
 /affine
 *.txt
+/linear
