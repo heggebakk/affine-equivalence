@@ -12,15 +12,14 @@ The program uses flags, for help type `./affine -h` in the command line.
 Flags:
 ```text
 Affine
-Usage: ./affine [affine_options] [filename]
+Usage: affine [affine_options] [filenameF] [filenameG] 
 Affine_options:
-	-a 	- Set this if you want to find the affine function A.
-	-g 	- The root filename where the function G is found.	If not given, the program will compute a random G with respect to F.
 	-h 	- Print help
-	-w 	- The root filename where the results should be written to, default = "results.txt"
+	-t 	- Print run time
 
-	filename = the root filename of function F
-	-h override all other options
+	filenameF = the path to file of function F
+	filenameG = the path to file of function G
+
 ```
 The `function F` is expected to be in the format:
 ```text
