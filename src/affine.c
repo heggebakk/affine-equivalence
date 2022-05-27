@@ -58,7 +58,7 @@ void countElements(TruthTable *F, size_t *occurrences) {
 }
 
 bool outerPermutation(Partition *F, Partition *G, size_t n, size_t *basis, size_t *map, TruthTable *functionF,
-                      TruthTable *functionG) {
+                      TruthTable *functionG, bool affineSearch) {
     size_t *images = malloc(sizeof(size_t) * n); // The images of the basis elements under l
     size_t *generated = calloc(sizeof(size_t), 1L << n); // A partial truth table for l
     bool *generatedImages = calloc(sizeof(bool), 1L << n);
@@ -72,8 +72,9 @@ bool outerPermutation(Partition *F, Partition *G, size_t n, size_t *basis, size_
     size_t *gClass = createBucketRepresentation(G, n);
 
     // Recursively guess the values of l on the basis (essentially, a dfs with backtracking upon contradiction
-    guessValuesOfL(0, basis, images, F, G, n, generated, generatedImages, fClass, gClass, map, &foundSolution, functionF,
-                   functionG);
+    guessValuesOfL(0, basis, images, F, G, n, generated, generatedImages, fClass, gClass, map, &foundSolution,
+                   functionF,
+                   functionG, affineSearch);
 
     free(images);
     free(generated);
@@ -86,7 +87,7 @@ bool outerPermutation(Partition *F, Partition *G, size_t n, size_t *basis, size_
 void
 guessValuesOfL(size_t k, size_t *basis, size_t *images, Partition *partitionF, Partition *partitionG, size_t n,
                size_t *generated, bool *generatedImages, size_t *fBucket, size_t *gBucket, size_t *map,
-               bool *foundSolution, TruthTable *functionF, TruthTable *functionG) {
+               bool *foundSolution, TruthTable *functionF, TruthTable *functionG, bool affineSearch) {
     if (*foundSolution) return;
     /**
      * If all basis elements have been assigned an image, and no contradictions have occurs, then we have found a
@@ -94,31 +95,30 @@ guessValuesOfL(size_t k, size_t *basis, size_t *images, Partition *partitionF, P
      * containing all permutations found by the search.
      */
     if (k == n) {
-        TruthTable *currentA1 = initTruthTable(n);
-        memcpy(currentA1->elements, generated, sizeof(size_t) * 1L << n);
-        TruthTable *A1Inverse = inverse(currentA1); // A1^{-1}
-        TruthTable *GPrime = compose(A1Inverse, functionG); // A1^{-1} * ODGc = ODGc'
-        TruthTable *A2 = initTruthTable(n);
-        A2->elements[0] = 0; // We know that the function is linear => L[0] -> 0
+        TruthTable *currentL1 = initTruthTable(n);
+        memcpy(currentL1->elements, generated, sizeof(size_t) * 1L << n);
+        TruthTable *L1Inverse = inverse(currentL1); // L1^{-1}
+        TruthTable *GPrime = compose(L1Inverse, functionG); // L1^{-1} * G = G'
+        TruthTable *L2 = initTruthTable(n);
+        L2->elements[0] = 0; // We know that the function is linear => L[0] -> 0
 
-        if (innerPermutation(functionF, GPrime, basis, A2)) {
-            /* At this point, we know (A1,A2) linear s.t. A1 * orthoderivativeF * A2 = orthoderivativeG */
-            // We don't want to print out all the A1, A2 if the user looks for A
+        if (innerPermutation(functionF, GPrime, basis, L2, affineSearch)) {
+            /* At this point, we know (L1,L2) linear s.t. L1 * orthoderivativeF * L2 = orthoderivativeG */
             *foundSolution = true;
-            printf("A1:\n");
-            printTruthTable(currentA1);
-            printf("A2:\n");
-            printTruthTable(A2);
-            destroyTruthTable(A1Inverse);
+            printf("L1:\n");
+            printTruthTable(currentL1);
+            printf("L2:\n");
+            printTruthTable(L2);
+            destroyTruthTable(L1Inverse);
             destroyTruthTable(GPrime);
-            destroyTruthTable(A2);
-            destroyTruthTable(currentA1);
+            destroyTruthTable(L2);
+            destroyTruthTable(currentL1);
             return;
         }
-        destroyTruthTable(currentA1);
-        destroyTruthTable(A1Inverse);
+        destroyTruthTable(currentL1);
+        destroyTruthTable(L1Inverse);
         destroyTruthTable(GPrime);
-        destroyTruthTable(A2);
+        destroyTruthTable(L2);
         return;
     }
         /**
@@ -186,7 +186,7 @@ guessValuesOfL(size_t k, size_t *basis, size_t *images, Partition *partitionF, P
             images[k] = ck;
             guessValuesOfL(k + 1, basis, images, partitionF, partitionG, n, generated, generatedImages, fBucket,
                            gBucket,
-                           map, foundSolution, functionF, functionG);
+                           map, foundSolution, functionF, functionG, affineSearch);
         }
 
         // When backtracking, we need to reset the generated image indicators
@@ -260,7 +260,7 @@ Node *computeRestrictedDomains(TruthTable *F, const bool *map) {
     return domainResult;
 }
 
-bool innerPermutation(TruthTable *F, TruthTable *G, const size_t *basis, TruthTable *L2) {
+bool innerPermutation(TruthTable *F, TruthTable *G, const size_t *basis, TruthTable *L2, bool affineSearch) {
     size_t dimension = F->n;
     Node **restrictedDomains = malloc(sizeof(Node **) * (dimension + 1));
     bool result;
@@ -276,35 +276,45 @@ bool innerPermutation(TruthTable *F, TruthTable *G, const size_t *basis, TruthTa
     size_t constant_term = G->elements[0];
     /* Guess of constant term of L2 */
 
-    for (size_t c2 = 0; c2 < 1L << dimension; ++c2) {
-        /* Only consider preimages of G(0) */
-        if (F->elements[c2] != constant_term) {
-            continue;
-        }
-
-        TruthTable *newG = initTruthTable(dimension);
-        for (size_t x = 0; x < 1L << dimension; ++x) {
-            newG->elements[x ^ c2] = G->elements[x];
-        }
-
-        result = dfs(restrictedDomains, 0, values, F, newG, L2, basis);
-        if (result) {
-            /* If we get a result, we have to add the constant to the linear function that we found in dfs, and check if
-             * F * l2 + c = G */
-            if (c2 != 0) {
-                for (int x = 0; x < 1L << dimension; ++x) {
-                    L2->elements[x] ^= c2;
-                }
+    if (affineSearch) {
+        for (size_t c2 = 0; c2 < 1L << dimension; ++c2) {
+            /* Only consider preimages of G(0) */
+            if (F->elements[c2] != constant_term) {
+                continue;
             }
 
+            TruthTable *newG = initTruthTable(dimension);
+            for (size_t x = 0; x < 1L << dimension; ++x) {
+                newG->elements[x ^ c2] = G->elements[x];
+            }
+
+            result = dfs(restrictedDomains, 0, values, F, newG, L2, basis);
+            if (result) {
+                /* If we get a result, we have to add the constant to the linear function that we found in dfs, and check if
+             * F * l2 + c = G */
+                if (c2 != 0) {
+                    for (int x = 0; x < 1L << dimension; ++x) {
+                        L2->elements[x] ^= c2;
+                    }
+                }
+
+                /* If everything went smoothly, we should have aPrime == G */
+                TruthTable *aPrime = compose(F, L2);
+
+                destroyTruthTable(aPrime);
+                destroyTruthTable(newG);
+                break;
+            }
+            destroyTruthTable(newG);
+        }
+    } else {
+        result = dfs(restrictedDomains, 0, values, F, G, L2, basis);
+        if (result) {
             /* If everything went smoothly, we should have aPrime == G */
             TruthTable *aPrime = compose(F, L2);
 
             destroyTruthTable(aPrime);
-            destroyTruthTable(newG);
-            break;
         }
-        destroyTruthTable(newG);
     }
 
     free(values);

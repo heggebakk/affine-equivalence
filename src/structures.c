@@ -83,8 +83,8 @@ TruthTable *randomLinearPermutation(size_t n) {
     return newFunction;
 }
 
-TruthTable *createTruthTable(TruthTable *f) {
-    size_t n = f->n;
+TruthTable *createAffineTruthTable(TruthTable *F) {
+    size_t n = F->n;
     size_t entries = 1L << n;
 
     // A1 * F * A2 + A = G
@@ -104,7 +104,7 @@ TruthTable *createTruthTable(TruthTable *f) {
         A->elements[i] ^= constant3;
     }
 
-    TruthTable *FComposeA2 = compose(f, A2);
+    TruthTable *FComposeA2 = compose(F, A2);
     TruthTable *G = compose(A1, FComposeA2);
     add(G, A);
 
@@ -112,6 +112,24 @@ TruthTable *createTruthTable(TruthTable *f) {
     destroyTruthTable(A2);
     destroyTruthTable(A);
     destroyTruthTable(FComposeA2);
+
+    return G;
+}
+
+TruthTable *createLinearTruthTable(TruthTable *F) {
+    size_t n = F->n;
+    TruthTable *L1 = randomLinearPermutation(n);
+    TruthTable *L2 = randomLinearPermutation(n);
+    TruthTable *L = randomLinearFunction(n);
+
+    TruthTable *temp = compose(F, L2);
+    TruthTable *G = compose(L1, temp);
+    add(G, L);
+
+    destroyTruthTable(L1);
+    destroyTruthTable(L2);
+    destroyTruthTable(L);
+    destroyTruthTable(temp);
 
     return G;
 }
@@ -332,5 +350,20 @@ void printTimes(RunTimes *runTimes) {
 
 void destroyRunTimes(RunTimes *runTimes) {
     free(runTimes);
+}
+
+void addConstant(TruthTable *F, size_t c) {
+    size_t dimension = F->n;
+    for (size_t i = 0; i < 1L << dimension; ++i) {
+        F->elements[i] ^= c;
+    }
+}
+
+size_t *createStandardBasis(size_t n) {
+    size_t *basis = malloc(sizeof(size_t) * n);
+    for (size_t i = 0; i < n; ++i) {
+        basis[i] = 1L << i;
+    }
+    return basis;
 }
 

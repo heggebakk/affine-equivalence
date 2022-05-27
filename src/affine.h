@@ -37,7 +37,7 @@ void countElements(TruthTable *F, size_t *occurrences);
  * @return All linear permutations L1
  */
 bool outerPermutation(Partition *F, Partition *G, size_t n, size_t *basis, size_t *map, TruthTable *functionF,
-                      TruthTable *functionG);
+                      TruthTable *functionG, bool affineSearch);
 
 /**
  * Recursive function for reconstruction of all linear permutations L1
@@ -57,7 +57,7 @@ bool outerPermutation(Partition *F, Partition *G, size_t n, size_t *basis, size_
 void
 guessValuesOfL(size_t k, size_t *basis, size_t *images, Partition *partitionF, Partition *partitionG, size_t n,
                size_t *generated, bool *generatedImages, size_t *fBucket, size_t *gBucket, size_t *map,
-               bool *foundSolution, TruthTable *functionF, TruthTable *functionG);
+               bool *foundSolution, TruthTable *functionF, TruthTable *functionG, bool affineSearch);
 
 /**
  * Create a list that tells in which bucket each element belongs to.
@@ -91,7 +91,7 @@ Node *computeRestrictedDomains(TruthTable *F, const bool *map);
  * @param L2 The inner permutation
  * @return Returns True if reconstruction of L2 was successful, False otherwise
  */
-bool innerPermutation(TruthTable *F, TruthTable *G, const size_t *basis, TruthTable *L2);
+bool innerPermutation(TruthTable *F, TruthTable *G, const size_t *basis, TruthTable *L2, bool affineSearch);
 
 /**
  * A dept first search to reconstruct the inner permutation L2.
@@ -105,5 +105,11 @@ bool innerPermutation(TruthTable *F, TruthTable *G, const size_t *basis, TruthTa
  * @return
  */
 bool dfs(Node **domains, size_t k, size_t *values, TruthTable *F, TruthTable *G, TruthTable *L2, const size_t *basis);
+
+/**
+ * Check if a function F is affine
+ * @param F The function F to check
+ * @return True if the function F is affine, false otherwise
+ */
 
 #endif //AFFINE_AFFINE_H

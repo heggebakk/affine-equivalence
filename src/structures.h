@@ -64,14 +64,18 @@ TruthTable *randomLinearFunction(size_t n);
 TruthTable *randomLinearPermutation(size_t n);
 
 /**
- * Create a new truth table with respect to a function F
- * Also saves the two linear function L1 and L2 from the construction of randomLinearPermutation
- * @param f The function F
- * @param L1 The function L1 constructed before adding a constant to A1 to create the function
- * @param L2 The function L2 constructed before adding a constant to A2 to create the function
- * @return A new function with respect to F
+ * Create a new affine truth table with respect to a function F
+ * @param F The function F
+ * @return A new affine function G
  */
-TruthTable *createTruthTable(TruthTable *f);
+TruthTable *createAffineTruthTable(TruthTable *F);
+
+/**
+ * Create new linear truth table with respect to a function F
+ * @param F The function F
+ * @return A new linear function G
+ */
+TruthTable *createLinearTruthTable(TruthTable *F);
 
 /**
  * Print all the elements of the TruthTable to the console
@@ -269,5 +273,19 @@ void printTimes(RunTimes *runTimes);
  * @param runTimes The run times to destroy
  */
 void destroyRunTimes(RunTimes *runTimes);
+
+/**
+ * Create a standard basis, {b_1, ..., b_n}
+ * @param n The dimension
+ * @return Standard basis
+ */
+size_t *createStandardBasis(size_t n);
+
+/**
+ * Add a constant c to a function F, s.t. F = F + c
+ * @param F A function F to add a constant to
+ * @param c The value of the constant
+ */
+void addConstant(TruthTable *F, size_t c);
 
 #endif //AFFINE_STRUCTURES_H
