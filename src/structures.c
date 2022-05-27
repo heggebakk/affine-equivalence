@@ -2,6 +2,7 @@
 #include <memory.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <time.h>
 #include "structures.h"
 #include "affine.h"
 
@@ -82,8 +83,8 @@ TruthTable *randomLinearPermutation(size_t n) {
     return newFunction;
 }
 
-TruthTable *createTruthTable(TruthTable *F) {
-    size_t n = F->n;
+TruthTable *createTruthTable(TruthTable *f) {
+    size_t n = f->n;
     size_t entries = 1L << n;
 
     // A1 * F * A2 + A = G
@@ -103,7 +104,7 @@ TruthTable *createTruthTable(TruthTable *F) {
         A->elements[i] ^= constant3;
     }
 
-    TruthTable *FComposeA2 = compose(F, A2);
+    TruthTable *FComposeA2 = compose(f, A2);
     TruthTable *G = compose(A1, FComposeA2);
     add(G, A);
 
@@ -116,7 +117,6 @@ TruthTable *createTruthTable(TruthTable *F) {
 }
 
 void printTruthTable(TruthTable *tt) {
-    printf("%zu\n", tt->n);
     for (int i = 0; i < 1L << tt->n; ++i) {
         if (i < (1L << tt->n) - 1) {
             printf("%zu ", tt->elements[i]);
@@ -314,3 +314,23 @@ void destroyTtNode(TtNode *head) {
         }
     }
 }
+
+RunTimes *initRunTimes() {
+    RunTimes *newTime = malloc(sizeof(RunTimes));
+    newTime->total = 0.0;
+    return newTime;
+}
+
+double stopTime(double runTime, clock_t startParsing) {
+    runTime += (double) (clock() - startParsing) / CLOCKS_PER_SEC;
+    return runTime;
+}
+
+void printTimes(RunTimes *runTimes) {
+    printf("Total time spent: %f \n", runTimes->total);
+}
+
+void destroyRunTimes(RunTimes *runTimes) {
+    free(runTimes);
+}
+
