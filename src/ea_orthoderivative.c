@@ -1,7 +1,6 @@
 #include <time.h>
-#include "adjoint.h"
 #include "structures.h"
-#include "affine.h"
+#include "equivalence.h"
 #include "orthoderivative.h"
 
 /**
@@ -71,7 +70,7 @@ int main(int argc, char *argv[]) {
         size_t *mapOfPreImages = mapPreImages(partitionF, partitionG); // Create a mapping between the pre-images of F and ODGc
 
         // Calculate outer permutation, A1
-        foundSolution = outerPermutation(partitionF, partitionG, n, basis, mapOfPreImages, orthoderivativeF, ODGc, true);
+        foundSolution = outerPermutation(partitionF, partitionG, n, basis, mapOfPreImages, orthoderivativeF, ODGc, false);
 
         destroyTruthTable(ODGc);
         destroyPartition(partitionG);
@@ -95,9 +94,10 @@ int main(int argc, char *argv[]) {
 }
 
 void printHelp() {
-    printf("Affine\n");
-    printf("Usage: affine [affine_options] [filenameF] [filenameG] \n");
-    printf("Affine_options:\n");
+    printf("EA-equivalence\n");
+    printf("Check for EA-equivalence via their orthoderivatives.\n")
+    printf("Usage: ea [ea_options] [filenameF] [filenameG] \n");
+    printf("Ea_options:\n");
     printf("\t-h \t- Print help\n");
     printf("\t-t \t- Print run time\n");
     printf("\n");
