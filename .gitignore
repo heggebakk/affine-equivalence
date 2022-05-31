@@ -150,3 +150,4 @@ fabric.properties
 /affine
 *.txt
 /linear
+/ea_orthoderivative
