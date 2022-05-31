@@ -94,9 +94,10 @@ int main(int argc, char *argv[]) {
 }
 
 void printHelp() {
-    printf("Affine\n");
-    printf("Usage: affine [affine_options] [filenameF] [filenameG] \n");
-    printf("Affine_options:\n");
+    printf("EA-equivalence\n");
+    printf("Check for EA-equivalence via their orthoderivatives.\n")
+    printf("Usage: ea [ea_options] [filenameF] [filenameG] \n");
+    printf("Ea_options:\n");
     printf("\t-h \t- Print help\n");
     printf("\t-t \t- Print run time\n");
     printf("\n");
