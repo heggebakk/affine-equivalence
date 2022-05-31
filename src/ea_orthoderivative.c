@@ -95,7 +95,7 @@ int main(int argc, char *argv[]) {
 
 void printHelp() {
     printf("EA-equivalence\n");
-    printf("Check for EA-equivalence via their orthoderivatives.\n")
+    printf("Check for EA-equivalence via their orthoderivatives.\n");
     printf("Usage: ea [ea_options] [filenameF] [filenameG] \n");
     printf("Ea_options:\n");
     printf("\t-h \t- Print help\n");
