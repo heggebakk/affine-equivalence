@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <time.h>
 #include "structures.h"
-#include "affine.h"
+#include "equivalence.h"
 
 TruthTable *initTruthTable(size_t n) {
     TruthTable *tt = malloc(sizeof(TruthTable));
@@ -179,9 +179,8 @@ void printPartition(Partition *F) {
 
 Partition *partitionTt(TruthTable *tt) {
     size_t dimension = tt->n;
-    size_t *multiplicities = malloc(sizeof(size_t) * 1L << dimension);
+    size_t *multiplicities = calloc(sizeof(size_t), 1L << dimension);
     Partition *partition = initPartition(dimension);
-    memset(multiplicities, 0, sizeof (size_t) * 1L << dimension);
     countElements(tt, multiplicities);
 
     for (int i = 0; i < 1L << dimension; ++i) {

@@ -1,5 +1,5 @@
-#ifndef AFFINE_AFFINE_H
-#define AFFINE_AFFINE_H
+#ifndef AFFINE_EQUIVALENCE_H
+#define AFFINE_EQUIVALENCE_H
 
 /**
  * Parse file containing the elements of a truth table. The first line is the n of the truth table. The
@@ -112,4 +112,4 @@ bool dfs(Node **domains, size_t k, size_t *values, TruthTable *F, TruthTable *G,
  * @return True if the function F is affine, false otherwise
  */
 
-#endif //AFFINE_AFFINE_H
+#endif //AFFINE_EQUIVALENCE_H

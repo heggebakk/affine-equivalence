@@ -1,7 +1,6 @@
 #include <time.h>
-#include "adjoint.h"
 #include "structures.h"
-#include "affine.h"
+#include "equivalence.h"
 #include "orthoderivative.h"
 
 /**
@@ -71,7 +70,7 @@ int main(int argc, char *argv[]) {
         size_t *mapOfPreImages = mapPreImages(partitionF, partitionG); // Create a mapping between the pre-images of F and ODGc
 
         // Calculate outer permutation, A1
-        foundSolution = outerPermutation(partitionF, partitionG, n, basis, mapOfPreImages, orthoderivativeF, ODGc, true);
+        foundSolution = outerPermutation(partitionF, partitionG, n, basis, mapOfPreImages, orthoderivativeF, ODGc, false);
 
         destroyTruthTable(ODGc);
         destroyPartition(partitionG);
