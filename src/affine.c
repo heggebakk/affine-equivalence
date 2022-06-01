@@ -46,11 +46,14 @@ int main(int argc, char *argv[]) {
             }
         }
     }
-    // L1 and L2 are the linear functions from the creation of a random G with respect to F
+    if (functionF == NULL) {
+        printf("Missing function F. \n");
+        return 0;
+    }
     n = functionF->n;
 
     if (functionG == NULL) {
-        functionG = createLinearTruthTable(functionF); // Create a random function G with respect to F
+        functionG = createAffineTruthTable(functionF); // Create a random function G with respect to F
         printf("G:\n");
         printTruthTable(functionG);
     }

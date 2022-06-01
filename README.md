@@ -5,7 +5,7 @@
 
 ### How to build and run the program
 To build the program, make `compile.sh` executable and run `./compile.sh` at the command line in the root directory
-of the project, which will generate two executables called  `ea_orthoderivative` and `affine`.
+of the project, which will generate three executables called  `ea_orthoderivative`, `affine` and `linear`.
 
 The program uses flags, for help type `./ea_orthoderivative -h` in the command line.
 
@@ -32,7 +32,18 @@ Affine_options:
 
 	filenameF = the path to file of function F
 	filenameG = the path to file of function G
+```
+```text
+> ./linear -h
+Linear equivalence test
+Check for linear equivalences between two functions F and G.
+Usage: linear [linear_options] [filenameF] [filenameG] 
+Linear_options:
+        -h      - Print help
+        -t      - Print run time
 
+        filenameF = the path to file of function F
+        filenameG = the path to file of function G
 ```
 The functions `F` and `G` is expected to be in the format:
 ```text
@@ -50,5 +61,9 @@ L1:
 
 L2:
 0 49 36 21 17 32 53 4 47 30 11 58 62 15 26 43 54 7 18 35 39 22 3 50 25 40 61 12 8 57 44 29 28 45 56 9 13 60 41 24 51 2 23 38 34 19 6 55 42 27 14 63 59 10 31 46 5 52 33 16 20 37 48 1
-
 ```
+
+## What the programs do
+- `ea_orthoderivative`: Test for EA-equivalence between two function `F` and `G`;
+- `affine`: Test for affine equivalence between two functions `F` and `G`;
+- `linear`: Test for linear equivalence between two functions `F` and `G`.

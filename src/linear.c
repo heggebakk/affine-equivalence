@@ -6,7 +6,7 @@
 /**
  * Print out a list over all the flags that can be used in the program
  */
-void printHelp();
+void printLinearHelp();
 
 int main(int argc, char *argv[]) {
     size_t n; // Working n
@@ -19,7 +19,7 @@ int main(int argc, char *argv[]) {
 
     // Check for flags
     if (argc < 2) {
-        printHelp();
+        printLinearHelp();
         return 0;
     }
     startTotalTime = clock();
@@ -30,7 +30,7 @@ int main(int argc, char *argv[]) {
         if (argv[i][0] == '-') {
             switch (argv[i][1]) {
                 case 'h':
-                    printHelp();
+                    printLinearHelp();
                     return 0;
                 case 't':
                     times = true;
@@ -53,39 +53,27 @@ int main(int argc, char *argv[]) {
     n = functionF->n;
 
     if (functionG == NULL) {
-        functionG = createAffineTruthTable(functionF); // Create a random function G with respect to F
+        functionG = createLinearFunction(functionF); // Create a random function G with respect to F
         printf("G:\n");
         printTruthTable(functionG);
     }
-    TruthTable *orthoderivativeF = orthoderivative(functionF); // The orthoderivative of F
-    TruthTable *orthoderivativeG = orthoderivative(functionG); // The orthoderivative of G
 
-    Partition *partitionF = partitionTt(orthoderivativeF); // The partition of the orthoderivative of F
+    Partition *partitionF = partitionTt(functionF); // The partition of the orthoderivative of F
     basis = createStandardBasis(n); // Basis {b_1, ..., b_n}, here we use the standard basis.
 
     // Need to test for all possible constants, 0..2^n - 1.
     _Bool foundSolution = false; /* for breaking out of nested loops */
-    for (size_t c1 = 0; c1 < 1L << n; ++c1) {
-        TruthTable *ODGc = initTruthTable(n); // ODGc' = orthoderivativeG + c_1
-        memcpy(ODGc->elements, orthoderivativeG->elements, sizeof(size_t) * 1L << n);
-        addConstant(ODGc, c1); // Add the constant c1 to ODGc: ODGc' = ODGc + c_1
-        Partition *partitionG = partitionTt(ODGc);
-        size_t *mapOfPreImages = mapPreImages(partitionF, partitionG); // Create a mapping between the pre-images of F and ODGc
+    Partition *partitionG = partitionTt(functionG);
+    size_t *mapOfPreImages = mapPreImages(partitionF, partitionG); // Create a mapping between the pre-images of F and ODGc
 
-        // Calculate outer permutation, A1
-        foundSolution = outerPermutation(partitionF, partitionG, n, basis, mapOfPreImages, orthoderivativeF, ODGc, false);
+    // Calculate outer permutation, A1
+    foundSolution = outerPermutation(partitionF, partitionG, n, basis, mapOfPreImages, functionF, functionG, false);
 
-        destroyTruthTable(ODGc);
-        destroyPartition(partitionG);
-        free(mapOfPreImages);
-
-        if (foundSolution) break;
-    }
+    destroyPartition(partitionG);
+    free(mapOfPreImages);
 
     destroyTruthTable(functionF);
     destroyTruthTable(functionG);
-    destroyTruthTable(orthoderivativeF);
-    destroyTruthTable(orthoderivativeG);
     destroyPartition(partitionF);
     free(basis);
     runTime->total = stopTime(runTime->total, startTotalTime);
@@ -96,11 +84,11 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-void printHelp() {
-    printf("EA-equivalence\n");
-    printf("Check for EA-equivalence via their orthoderivatives.\n");
-    printf("Usage: ea [ea_options] [filenameF] [filenameG] \n");
-    printf("Ea_options:\n");
+void printLinearHelp() {
+    printf("Linear equivalence test\n");
+    printf("Check for linear equivalences between two functions F and G.\n");
+    printf("Usage: linear [linear_options] [filenameF] [filenameG] \n");
+    printf("Linear_options:\n");
     printf("\t-h \t- Print help\n");
     printf("\t-t \t- Print run time\n");
     printf("\n");

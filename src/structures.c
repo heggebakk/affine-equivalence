@@ -116,19 +116,16 @@ TruthTable *createAffineTruthTable(TruthTable *F) {
     return G;
 }
 
-TruthTable *createLinearTruthTable(TruthTable *F) {
+TruthTable *createLinearFunction(TruthTable *F) {
     size_t n = F->n;
     TruthTable *L1 = randomLinearPermutation(n);
     TruthTable *L2 = randomLinearPermutation(n);
-    TruthTable *L = randomLinearFunction(n);
 
     TruthTable *temp = compose(F, L2);
     TruthTable *G = compose(L1, temp);
-    add(G, L);
 
     destroyTruthTable(L1);
     destroyTruthTable(L2);
-    destroyTruthTable(L);
     destroyTruthTable(temp);
 
     return G;

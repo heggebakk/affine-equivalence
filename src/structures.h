@@ -71,11 +71,11 @@ TruthTable *randomLinearPermutation(size_t n);
 TruthTable *createAffineTruthTable(TruthTable *F);
 
 /**
- * Create new linear truth table with respect to a function F
+ * Create new linear truth table with respect to a function F where F and G are EA-equivalent
  * @param F The function F
- * @return A new linear function G
+ * @return A new linear EA function G
  */
-TruthTable *createLinearTruthTable(TruthTable *F);
+TruthTable *createLinearFunction(TruthTable *F);
 
 /**
  * Print all the elements of the TruthTable to the console
